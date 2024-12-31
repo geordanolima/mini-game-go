@@ -1,4 +1,4 @@
-# Mini Go Game (Race Car)
+# Mini Game golang (Race Car)
 
 Este projeto possui documentação em Português e Inglês.
 
@@ -7,7 +7,7 @@ Este projeto possui documentação em Português e Inglês.
 
 ---
 
-# Mini game go (corrida de carro)
+# Mini game golang (corrida de carro)
 
 This project has documentation in Portuguese and English.
 
