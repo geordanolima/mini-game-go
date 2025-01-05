@@ -11,4 +11,12 @@
   - created method to load and resize images.
   - created readmes in Portuguese and English.
 
+- 3º commit:
+- refactored files and directories
+- created a helper to convert colors (hex to rgba)
+- created a helper to load images
+- created a helper to load fonts
+- added fonts to the project
+- created a launcher to run the project in vscode
+- added texts on the screen (fuel, score and level)
 [Readme](readme.md)
