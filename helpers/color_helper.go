@@ -24,9 +24,9 @@ func HexToRGBA(hex string, opacity ...uint8) (color.RGBA, error) {
 	if err != nil {
 		return color.RGBA{}, err
 	}
-	var _opacity uint8 = 255
+	var alpha uint8 = 255
 	if len(opacity) > 0 {
-		_opacity = opacity[0]
+		alpha = opacity[0]
 	}
-	return color.RGBA{uint8(red), uint8(green), uint8(blue), _opacity}, nil
+	return color.RGBA{uint8(red), uint8(green), uint8(blue), alpha}, nil
 }

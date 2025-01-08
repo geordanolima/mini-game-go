@@ -12,11 +12,17 @@
   - created readmes in Portuguese and English.
 
 - 3º commit:
-- refactored files and directories
-- created a helper to convert colors (hex to rgba)
-- created a helper to load images
-- created a helper to load fonts
-- added fonts to the project
-- created a launcher to run the project in vscode
-- added texts on the screen (fuel, score and level)
+  - refactored files and directories
+  - created a helper to convert colors (hex to rgba)
+  - created a helper to load images
+  - created a helper to load fonts
+  - added fonts to the project
+  - created a launcher to run the project in vscode
+  - added texts on the screen (fuel, score and level)
+
+- 4º commit:
+  - refactored code
+  - created method to load obstacles
+
+
 [Readme](readme.md)
