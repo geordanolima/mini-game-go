@@ -10,10 +10,11 @@ import (
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-var gameWidth float64 = 800
+var gameWidth float64 = 750
 var gameHeight float64 = 1000
 
 type Game struct {
@@ -39,10 +40,10 @@ func loadObstacules(numObstacles int) ([]domain.Obstacle, error) {
 		// get a randon image
 		randomIndex := rand.Intn(len(obstacleImages))
 		randomImage := obstacleImages[randomIndex]
-
+		positions := []int{15, 155, 305, 455, 605}
 		obstacles[i] = domain.Obstacle{
 			Position: domain.Position{
-				X: int(rand.Float64() * (gameWidth - 100)),
+				X: positions[rand.Intn(len(positions))],
 				Y: 50,
 			},
 			Image: randomImage,
@@ -65,7 +66,7 @@ func NewGame() (Game, error) {
 		car: domain.Car{
 			Image: ebiten.NewImageFromImage(carImage),
 			Position: domain.Position{
-				X: 350,
+				X: 325,
 				Y: 700,
 			},
 			Speed:  3,
@@ -73,7 +74,7 @@ func NewGame() (Game, error) {
 			Angule: 0,
 		},
 		score:     0,
-		level:     1,
+		level:     01,
 		obstacles: obstaculesGame,
 	}, nil
 }
@@ -106,18 +107,53 @@ func DrawTextHeader(textDraw string, position float64, fontDraw *text.GoTextFace
 	}, op)
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
-	//  create screen
-	colorRgba, err := helpers.HexToRGBA("#3C3C3C")
+func DrawRectGame(x, y, w, h float64, screen *ebiten.Image, color string) {
+	recColor, err := helpers.HexToRGBA(color)
 	if err != nil {
 		log.Fatal(err)
 	}
-	screen.Fill(colorRgba)
+	ebitenutil.DrawRect(screen, x, y, w, h, recColor)
+}
 
+func DrawRoad(screen *ebiten.Image, speed float64) {
+	// create lines of road
+	var lineWidth float64 = 10
+	var lineHeight float64 = 200
+
+	DrawRectGame(0, 0, lineWidth, gameHeight, screen, "#FFFFFF")
+	DrawRectGame(gameWidth-lineWidth, 0, lineWidth, gameHeight, screen, "#FFFFFF")
+
+	for i := 0; i <= 3; i++ {
+		DrawRectGame(150, (lineHeight+50)*float64(i)+speed, lineWidth, lineHeight, screen, "#FFFFFF")
+		DrawRectGame(300, (lineHeight+50)*float64(i)+speed, lineWidth, lineHeight, screen, "#FFFFFF")
+		DrawRectGame(450, (lineHeight+50)*float64(i)+speed, lineWidth, lineHeight, screen, "#FFFFFF")
+		DrawRectGame(600, (lineHeight+50)*float64(i)+speed, lineWidth, lineHeight, screen, "#FFFFFF")
+	}
+}
+
+func (g *Game) Draw(screen *ebiten.Image) {
+	//  create screen
+	bacgoundColor, err := helpers.HexToRGBA("#3C3C3C")
+	if err != nil {
+		log.Fatal(err)
+	}
+	screen.Fill(bacgoundColor)
+
+	DrawRoad(screen, float64(g.car.Speed))
+
+	// create header
+	DrawRectGame(0, 0, gameWidth, 55, screen, "#0F0F0F")
 	allanFont, err := helpers.LoadFont("AllanRegular.ttf")
 	DrawTextHeader("Fuel: "+strconv.Itoa(g.car.Fuel)+"%", 20, allanFont, screen)
-	DrawTextHeader("Score: "+strconv.Itoa(g.score), 350, allanFont, screen)
-	DrawTextHeader("Level: "+strconv.Itoa(g.level), 700, allanFont, screen)
+	DrawTextHeader("Score: "+strconv.Itoa(g.score), gameWidth/2, allanFont, screen)
+	DrawTextHeader("Level: "+strconv.Itoa(g.level), gameWidth-75, allanFont, screen)
+
+	for _, obstacle := range g.obstacles {
+		img := &ebiten.DrawImageOptions{}
+		img.GeoM.Scale(0.6, 0.6)
+		img.GeoM.Translate(float64(obstacle.Position.X), float64(obstacle.Position.Y))
+		screen.DrawImage(obstacle.Image, img)
+	}
 
 	if g.car.Image != nil {
 		carImage := &ebiten.DrawImageOptions{}
@@ -129,12 +165,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		// y := g.car.Position.Y
 		// log.Printf("Position of car: X: %d, Y: %d", x, y)
 	}
-	for _, obstacle := range g.obstacles {
-		img := &ebiten.DrawImageOptions{}
-		img.GeoM.Scale(0.6, 0.6)
-		img.GeoM.Translate(float64(obstacle.Position.X), float64(obstacle.Position.Y))
-		screen.DrawImage(obstacle.Image, img)
-	}
+
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

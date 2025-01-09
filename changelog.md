@@ -24,5 +24,11 @@
   - refactored code
   - created method to load obstacles
 
+- 5º commit:
+  - refactored code
+  - created lines of road
+  - created header box
+  - fixed to create obstacules in lines of road
+
 
 [Readme](readme.md)
