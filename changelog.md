@@ -30,5 +30,10 @@
   - created header box
   - fixed to create obstacules in lines of road
 
+- 6º commit:
+  - refactored code
+  - added mor obstacules
+  - move line road and obstacules at time
+  - added TODOs
 
 [Readme](readme.md)

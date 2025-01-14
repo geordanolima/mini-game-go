@@ -8,6 +8,7 @@ import (
 	"mini-game-go/domain"
 	"mini-game-go/helpers"
 	"strconv"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -16,16 +17,20 @@ import (
 
 var gameWidth float64 = 750
 var gameHeight float64 = 1000
+var lineWidth float64 = 10
+var lineHeight float64 = 200
 
 type Game struct {
 	car       domain.Car
 	obstacles []domain.Obstacle
 	score     int
 	level     int
+	road      []domain.Position
+	roadMove  time.Time
 }
 
 func loadObstacules(numObstacles int) ([]domain.Obstacle, error) {
-	imagePaths := []string{"cone.png", "hole.png", "truck.png", "bus.png"}
+	imagePaths := []string{"cone.png", "cone2.png", "hole.png", "truck.png", "bus.png"}
 	obstacleImages := make([]*ebiten.Image, len(imagePaths))
 	for i, path := range imagePaths {
 		img, err := helpers.LoadImage(path)
@@ -36,21 +41,43 @@ func loadObstacules(numObstacles int) ([]domain.Obstacle, error) {
 	}
 
 	obstacles := make([]domain.Obstacle, numObstacles)
+	positionsX := []int{15, 155, 305, 455, 605}
 	for i := 0; i < numObstacles; i++ {
 		// get a randon image
-		randomIndex := rand.Intn(len(obstacleImages))
-		randomImage := obstacleImages[randomIndex]
-		positions := []int{15, 155, 305, 455, 605}
+		randomImage := obstacleImages[rand.Intn(len(obstacleImages))]
+		// get randon position
+		indice := rand.Intn(len(positionsX))
+
 		obstacles[i] = domain.Obstacle{
 			Position: domain.Position{
-				X: positions[rand.Intn(len(positions))],
-				Y: 50,
+				X:      positionsX[indice],
+				Y:      50,
+				Height: 100, // TODO adjust height to image size
 			},
 			Image: randomImage,
 		}
+		positionsX[indice] = positionsX[len(positionsX)-1]
+		positionsX = positionsX[:len(positionsX)-1]
 	}
 	return obstacles, nil
 
+}
+
+func loadRoad() []domain.Position {
+	lines := make([]domain.Position, 21)
+	positionsX := []int{150, 300, 450, 600}
+	index := 0
+	for line := 0; line <= 4; line++ {
+		for column := 0; column <= 3; column++ {
+			lines[index] = domain.Position{
+				X:      positionsX[column],
+				Y:      int(int(lineHeight+50) * line),
+				Height: int(lineHeight),
+			}
+			index++
+		}
+	}
+	return lines
 }
 
 func NewGame() (Game, error) {
@@ -69,17 +96,35 @@ func NewGame() (Game, error) {
 				X: 325,
 				Y: 700,
 			},
-			Speed:  3,
+			Speed:  5,
 			Fuel:   100,
 			Angule: 0,
 		},
 		score:     0,
 		level:     01,
 		obstacles: obstaculesGame,
+		road:      loadRoad(),
 	}, nil
 }
 
 func (g *Game) Update() error {
+	if time.Since(g.roadMove) >= 100*time.Millisecond {
+		g.roadMove = time.Now()
+		// Move road
+		for i := 0; i < len(g.road); i++ {
+			g.road[i].Y += g.car.Speed * 2
+			if g.road[i].Y > int(gameHeight) {
+				g.road[i].Y = -g.road[i].Height - 50
+			}
+		}
+		for i := 0; i < len(g.obstacles); i++ {
+			g.obstacles[i].Position.Y += g.car.Speed * 2
+			if g.obstacles[i].Position.Y > int(gameHeight) {
+				// TODO remove obstacule and create new
+				g.obstacles[i].Position.Y = -g.obstacles[i].Position.Height - 50
+			}
+		}
+	}
 	//  update position main car
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowLeft) || ebiten.IsKeyPressed(ebiten.KeyA)) && g.car.Position.X >= 5 {
 		g.car.Position.X -= int(g.car.Speed)
@@ -89,9 +134,15 @@ func (g *Game) Update() error {
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowUp) || ebiten.IsKeyPressed(ebiten.KeyW)) && g.car.Position.Y >= 55 {
 		g.car.Position.Y -= int(g.car.Speed)
+		for i := 0; i < len(g.road); i++ {
+			g.road[i].Y += g.car.Speed
+		}
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowDown) || ebiten.IsKeyPressed(ebiten.KeyS)) && g.car.Position.Y <= 757 {
 		g.car.Position.Y += int(g.car.Speed)
+		for i := 0; i < len(g.road); i++ {
+			g.road[i].Y -= g.car.Speed
+		}
 	}
 	return nil
 }
@@ -115,19 +166,13 @@ func DrawRectGame(x, y, w, h float64, screen *ebiten.Image, color string) {
 	ebitenutil.DrawRect(screen, x, y, w, h, recColor)
 }
 
-func DrawRoad(screen *ebiten.Image, speed float64) {
+func DrawRoad(screen *ebiten.Image, g *Game) {
 	// create lines of road
-	var lineWidth float64 = 10
-	var lineHeight float64 = 200
-
 	DrawRectGame(0, 0, lineWidth, gameHeight, screen, "#FFFFFF")
 	DrawRectGame(gameWidth-lineWidth, 0, lineWidth, gameHeight, screen, "#FFFFFF")
 
-	for i := 0; i <= 3; i++ {
-		DrawRectGame(150, (lineHeight+50)*float64(i)+speed, lineWidth, lineHeight, screen, "#FFFFFF")
-		DrawRectGame(300, (lineHeight+50)*float64(i)+speed, lineWidth, lineHeight, screen, "#FFFFFF")
-		DrawRectGame(450, (lineHeight+50)*float64(i)+speed, lineWidth, lineHeight, screen, "#FFFFFF")
-		DrawRectGame(600, (lineHeight+50)*float64(i)+speed, lineWidth, lineHeight, screen, "#FFFFFF")
+	for i := 0; i < len(g.road); i++ {
+		DrawRectGame(float64(g.road[i].X), float64(g.road[i].Y)+float64(g.car.Speed), lineWidth, lineHeight, screen, "#FFFFFF")
 	}
 }
 
@@ -139,7 +184,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	screen.Fill(bacgoundColor)
 
-	DrawRoad(screen, float64(g.car.Speed))
+	DrawRoad(screen, g)
 
 	// create header
 	DrawRectGame(0, 0, gameWidth, 55, screen, "#0F0F0F")
