@@ -36,4 +36,10 @@
   - move line road and obstacules at time
   - added TODOs
 
+- 7º commit:
+  - refactored code
+  - added constants
+  - created file to load objects on screen
+  - starded role to conflict objects
+
 [Readme](readme.md)

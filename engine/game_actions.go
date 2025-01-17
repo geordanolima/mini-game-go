@@ -1,24 +1,15 @@
 package engine
 
 import (
-	"fmt"
 	_ "image/png"
 	"log"
-	"math/rand"
 	"mini-game-go/domain"
 	"mini-game-go/helpers"
 	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
-
-var gameWidth float64 = 750
-var gameHeight float64 = 1000
-var lineWidth float64 = 10
-var lineHeight float64 = 200
 
 type Game struct {
 	car       domain.Car
@@ -29,63 +20,12 @@ type Game struct {
 	roadMove  time.Time
 }
 
-func loadObstacules(numObstacles int) ([]domain.Obstacle, error) {
-	imagePaths := []string{"cone.png", "cone2.png", "hole.png", "truck.png", "bus.png"}
-	obstacleImages := make([]*ebiten.Image, len(imagePaths))
-	for i, path := range imagePaths {
-		img, err := helpers.LoadImage(path)
-		if err != nil {
-			return nil, fmt.Errorf("error loading obstacle image %s: %w", path, err)
-		}
-		obstacleImages[i] = ebiten.NewImageFromImage(img)
-	}
-
-	obstacles := make([]domain.Obstacle, numObstacles)
-	positionsX := []int{15, 155, 305, 455, 605}
-	for i := 0; i < numObstacles; i++ {
-		// get a randon image
-		randomImage := obstacleImages[rand.Intn(len(obstacleImages))]
-		// get randon position
-		indice := rand.Intn(len(positionsX))
-
-		obstacles[i] = domain.Obstacle{
-			Position: domain.Position{
-				X:      positionsX[indice],
-				Y:      50,
-				Height: 100, // TODO adjust height to image size
-			},
-			Image: randomImage,
-		}
-		positionsX[indice] = positionsX[len(positionsX)-1]
-		positionsX = positionsX[:len(positionsX)-1]
-	}
-	return obstacles, nil
-
-}
-
-func loadRoad() []domain.Position {
-	lines := make([]domain.Position, 21)
-	positionsX := []int{150, 300, 450, 600}
-	index := 0
-	for line := 0; line <= 4; line++ {
-		for column := 0; column <= 3; column++ {
-			lines[index] = domain.Position{
-				X:      positionsX[column],
-				Y:      int(int(lineHeight+50) * line),
-				Height: int(lineHeight),
-			}
-			index++
-		}
-	}
-	return lines
-}
-
 func NewGame() (Game, error) {
 	carImage, err := helpers.LoadImage("car.png")
 	if err != nil {
 		return Game{}, err
 	}
-	obstaculesGame, err := loadObstacules(3)
+	obstaculesGame, err := loadObstacules(5, nil)
 	if err != nil {
 		return Game{}, err
 	}
@@ -96,8 +36,12 @@ func NewGame() (Game, error) {
 				X: 325,
 				Y: 700,
 			},
-			Speed:  5,
-			Fuel:   100,
+			Speed: 15,
+			Fuel: domain.Fuel{
+				Percent: 100,
+				Time:    time.Now(),
+				Color:   domain.ColorGreen,
+			},
 			Angule: 0,
 		},
 		score:     0,
@@ -108,20 +52,35 @@ func NewGame() (Game, error) {
 }
 
 func (g *Game) Update() error {
-	if time.Since(g.roadMove) >= 100*time.Millisecond {
+	colorFuel := getColorFuel(g.car.Fuel.Percent)
+	if colorFuel != "" {
+		g.car.Fuel.Color = colorFuel
+	} else {
+		return nil
+	}
+	if time.Since(g.car.Fuel.Time) >= 1000*time.Millisecond {
+		g.car.Fuel.Time = time.Now()
+		fuelConsume := int(g.car.Speed / 5)
+		if fuelConsume <= 0 {
+			fuelConsume = 1
+		}
+		g.car.Fuel.Percent -= fuelConsume
+	}
+	if time.Since(g.roadMove) >= 50*time.Millisecond {
 		g.roadMove = time.Now()
 		// Move road
 		for i := 0; i < len(g.road); i++ {
 			g.road[i].Y += g.car.Speed * 2
-			if g.road[i].Y > int(gameHeight) {
+			if g.road[i].Y > int(domain.GameHeight) {
 				g.road[i].Y = -g.road[i].Height - 50
 			}
 		}
 		for i := 0; i < len(g.obstacles); i++ {
 			g.obstacles[i].Position.Y += g.car.Speed * 2
-			if g.obstacles[i].Position.Y > int(gameHeight) {
-				// TODO remove obstacule and create new
-				g.obstacles[i].Position.Y = -g.obstacles[i].Position.Height - 50
+			if g.obstacles[i].Position.Y > int(domain.GameHeight) {
+				g.obstacles = append(g.obstacles[:i], g.obstacles[i+1:]...)
+				obstaculesGame, _ := loadObstacules(1, g)
+				g.obstacles = append(g.obstacles, obstaculesGame[0])
 			}
 		}
 	}
@@ -134,46 +93,11 @@ func (g *Game) Update() error {
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowUp) || ebiten.IsKeyPressed(ebiten.KeyW)) && g.car.Position.Y >= 55 {
 		g.car.Position.Y -= int(g.car.Speed)
-		for i := 0; i < len(g.road); i++ {
-			g.road[i].Y += g.car.Speed
-		}
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowDown) || ebiten.IsKeyPressed(ebiten.KeyS)) && g.car.Position.Y <= 757 {
 		g.car.Position.Y += int(g.car.Speed)
-		for i := 0; i < len(g.road); i++ {
-			g.road[i].Y -= g.car.Speed
-		}
 	}
 	return nil
-}
-
-func DrawTextHeader(textDraw string, position float64, fontDraw *text.GoTextFaceSource, screen *ebiten.Image) {
-	op := &text.DrawOptions{}
-	op.GeoM.Translate(position, 20)
-	op.LineSpacing = 30
-
-	text.Draw(screen, textDraw, &text.GoTextFace{
-		Source: fontDraw,
-		Size:   20,
-	}, op)
-}
-
-func DrawRectGame(x, y, w, h float64, screen *ebiten.Image, color string) {
-	recColor, err := helpers.HexToRGBA(color)
-	if err != nil {
-		log.Fatal(err)
-	}
-	ebitenutil.DrawRect(screen, x, y, w, h, recColor)
-}
-
-func DrawRoad(screen *ebiten.Image, g *Game) {
-	// create lines of road
-	DrawRectGame(0, 0, lineWidth, gameHeight, screen, "#FFFFFF")
-	DrawRectGame(gameWidth-lineWidth, 0, lineWidth, gameHeight, screen, "#FFFFFF")
-
-	for i := 0; i < len(g.road); i++ {
-		DrawRectGame(float64(g.road[i].X), float64(g.road[i].Y)+float64(g.car.Speed), lineWidth, lineHeight, screen, "#FFFFFF")
-	}
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
@@ -183,36 +107,27 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		log.Fatal(err)
 	}
 	screen.Fill(bacgoundColor)
-
 	DrawRoad(screen, g)
-
-	// create header
-	DrawRectGame(0, 0, gameWidth, 55, screen, "#0F0F0F")
-	allanFont, err := helpers.LoadFont("AllanRegular.ttf")
-	DrawTextHeader("Fuel: "+strconv.Itoa(g.car.Fuel)+"%", 20, allanFont, screen)
-	DrawTextHeader("Score: "+strconv.Itoa(g.score), gameWidth/2, allanFont, screen)
-	DrawTextHeader("Level: "+strconv.Itoa(g.level), gameWidth-75, allanFont, screen)
-
 	for _, obstacle := range g.obstacles {
 		img := &ebiten.DrawImageOptions{}
 		img.GeoM.Scale(0.6, 0.6)
 		img.GeoM.Translate(float64(obstacle.Position.X), float64(obstacle.Position.Y))
 		screen.DrawImage(obstacle.Image, img)
 	}
-
+	// create header
+	DrawRectGame(0, 0, domain.GameWidth, 55, screen, "#0F0F0F")
+	allanFont, err := helpers.LoadFont("AllanRegular.ttf")
+	LoadTextHeader("Fuel: "+strconv.Itoa(g.car.Fuel.Percent)+"%", 20, allanFont, screen, g.car.Fuel.Color)
+	LoadTextHeader("Score: "+strconv.Itoa(g.score), domain.GameWidth/2, allanFont, screen, "#FFFFFF")
+	LoadTextHeader("Level: "+strconv.Itoa(g.level), domain.GameWidth-75, allanFont, screen, "#FFFFFF")
 	if g.car.Image != nil {
 		carImage := &ebiten.DrawImageOptions{}
 		carImage.GeoM.Scale(0.25, 0.25)
 		carImage.GeoM.Translate(float64(g.car.Position.X), float64(g.car.Position.Y))
 		screen.DrawImage(g.car.Image, carImage)
-
-		// x := g.car.Position.X
-		// y := g.car.Position.Y
-		// log.Printf("Position of car: X: %d, Y: %d", x, y)
 	}
-
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return int(gameWidth), int(gameHeight)
+	return int(domain.GameWidth), int(domain.GameHeight)
 }

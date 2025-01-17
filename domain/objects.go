@@ -2,6 +2,7 @@ package domain
 
 import (
 	_ "image/png"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -10,8 +11,14 @@ type Car struct {
 	Position Position
 	Image    *ebiten.Image
 	Speed    int
-	Fuel     int
+	Fuel     Fuel
 	Angule   int
+}
+
+type Fuel struct {
+	Percent int
+	Time    time.Time
+	Color   string
 }
 
 type Obstacle struct {
