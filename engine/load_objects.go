@@ -12,7 +12,21 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-func loadObstacules(numObstacles int, g *Game) ([]domain.Obstacle, error) {
+func verifyCanAddNewObstacle(obstacles []domain.Obstacle, positionsX []int, addedNewObstacle bool, indice, obsY int) (bool, int) {
+	for _, item := range obstacles {
+		h := item.Position.Height
+		y := item.Position.Y
+		posY := y > (obsY + h - 100)
+		addedNewObstacle = item.Position.X != positionsX[indice] || posY
+		if addedNewObstacle {
+			break
+		}
+		indice = rand.Intn(len(positionsX))
+	}
+	return addedNewObstacle, indice
+}
+
+func loadObstacles(numObstacles int, g *Game) ([]domain.Obstacle, error) {
 	imagePaths := []string{"cone.png", "cone2.png", "hole.png", "truck.png", "bus.png"}
 	obstacleImages := make([]*ebiten.Image, len(imagePaths))
 	for i, path := range imagePaths {
@@ -29,35 +43,19 @@ func loadObstacules(numObstacles int, g *Game) ([]domain.Obstacle, error) {
 		randomImage := obstacleImages[rand.Intn(len(obstacleImages))]
 		// get randon position
 		indice := rand.Intn(len(positionsX))
-		addedNewObstacule := false
+		addedNewObstacle := false
 		if g == nil {
-			addedNewObstacule = true
+			addedNewObstacle = true
 		}
-		obsH := randomImage.Bounds().Dy()
-		obsY := -obsH + 50
-		for !addedNewObstacule {
-			for _, item := range g.obstacles {
-				h := item.Position.Height
-				y := item.Position.Y
-				posY := y > (obsY + h - 100)
-				addedNewObstacule = item.Position.X != positionsX[indice] || posY
-				if addedNewObstacule {
-					break
-				}
-				indice = rand.Intn(len(positionsX))
-			}
-			for _, item := range obstacles {
-				h := item.Position.Height
-				y := item.Position.Y
-				posY := y < (obsY + h - 100)
-				addedNewObstacule = item.Position.X != positionsX[indice] || posY
-				if addedNewObstacule {
-					break
-				}
-				indice = rand.Intn(len(positionsX))
-			}
+		for !addedNewObstacle {
+			obsH := randomImage.Bounds().Dy()
+			obsY := -obsH + 50
+			// check the obstacles that are already added to the game
+			addedNewObstacle, indice = verifyCanAddNewObstacle(g.obstacles, positionsX, addedNewObstacle, indice, obsY)
+			// check the obstacles that will be added to the game
+			addedNewObstacle, indice = verifyCanAddNewObstacle(obstacles, positionsX, addedNewObstacle, indice, obsY)
 		}
-		if addedNewObstacule {
+		if addedNewObstacle {
 			obstacles[i] = domain.Obstacle{
 				Position: domain.Position{
 					X:      positionsX[indice],
@@ -90,9 +88,9 @@ func loadRoad() []domain.Position {
 	return lines
 }
 
-func LoadTextHeader(textDraw string, position float64, fontDraw *text.GoTextFaceSource, screen *ebiten.Image, textColor string) {
+func LoadTextHeader(textDraw string, positionX, positionY, size float64, fontDraw *text.GoTextFaceSource, screen *ebiten.Image, textColor string) {
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(position, 20)
+	op.GeoM.Translate(positionX, positionY)
 	textColorRgba, _ := helpers.HexToRGBA(textColor)
 	op.ColorM.Scale(
 		float64(textColorRgba.R)/255,
@@ -104,14 +102,14 @@ func LoadTextHeader(textDraw string, position float64, fontDraw *text.GoTextFace
 
 	text.Draw(screen, textDraw, &text.GoTextFace{
 		Source: fontDraw,
-		Size:   20,
+		Size:   size,
 	}, op)
 }
 
 func DrawRoad(screen *ebiten.Image, g *Game) {
 	// create lines of road
-	DrawRectGame(0, 0, domain.LineWidth, domain.GameHeight, screen, "#FFFFFF")
-	DrawRectGame(domain.GameWidth-domain.LineWidth, 0, domain.LineWidth, domain.GameHeight, screen, "#FFFFFF")
+	DrawRectGame(0, 0, domain.LineWidth, domain.GameHeight, screen, domain.ColorWhite)
+	DrawRectGame(domain.GameWidth-domain.LineWidth, 0, domain.LineWidth, domain.GameHeight, screen, domain.ColorWhite)
 
 	for i := 0; i < len(g.road); i++ {
 		DrawRectGame(
@@ -120,7 +118,7 @@ func DrawRoad(screen *ebiten.Image, g *Game) {
 			domain.LineWidth,
 			domain.LineHeight,
 			screen,
-			"#FFFFFF",
+			domain.ColorWhite,
 		)
 	}
 }

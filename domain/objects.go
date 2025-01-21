@@ -29,3 +29,9 @@ type Obstacle struct {
 type Game struct {
 	car Car
 }
+
+type GameOver struct {
+	Flag         bool
+	BoxPosition  Position
+	TextPosition Position
+}

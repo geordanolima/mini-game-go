@@ -28,12 +28,12 @@
   - refactored code
   - created lines of road
   - created header box
-  - fixed to create obstacules in lines of road
+  - fixed to create obstacles in lines of road
 
 - 6º commit:
   - refactored code
-  - added mor obstacules
-  - move line road and obstacules at time
+  - added mor obstacles
+  - move line road and obstacles at time
   - added TODOs
 
 - 7º commit:
@@ -41,5 +41,10 @@
   - added constants
   - created file to load objects on screen
   - starded role to conflict objects
+
+- 8º commit:
+  - refactored code
+  - added constants
+  - created role game over
 
 [Readme](readme.md)
