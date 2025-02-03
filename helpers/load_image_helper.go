@@ -4,6 +4,8 @@ import (
 	"image"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/image/draw"
 )
 
 func LoadImage(fileName string) (image.Image, error) {
@@ -19,4 +21,15 @@ func LoadImage(fileName string) (image.Image, error) {
 		return nil, err
 	}
 	return img, nil
+}
+
+func LoadImageResize(fileName string, width, height int) (image.Image, error) {
+	img, err := LoadImage(fileName)
+	if err != nil {
+		return nil, err
+	}
+	rect := image.Rect(0, 0, width, height)
+	res := image.NewRGBA(rect)
+	draw.NearestNeighbor.Scale(res, rect, img, img.Bounds(), draw.Over, nil)
+	return res, nil
 }

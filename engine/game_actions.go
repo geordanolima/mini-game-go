@@ -6,9 +6,11 @@ import (
 	"mini-game-go/domain"
 	"mini-game-go/helpers"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 type Game struct {
@@ -16,66 +18,43 @@ type Game struct {
 	obstacles []domain.Obstacle
 	score     int
 	level     int
-	road      []domain.Position
+	road      []domain.Object
 	roadMove  time.Time
 	gameOver  domain.GameOver
+	font      text.GoTextFaceSource
 }
 
-func NewGame() (Game, error) {
-	carImage, err := helpers.LoadImage("car.png")
-	if err != nil {
-		return Game{}, err
-	}
-	obstaclesGame, err := loadObstacles(5, nil)
-	if err != nil {
-		return Game{}, err
-	}
+func NewGame() Game {
+	obstaclesGame, _ := loadObstacles(5, nil)
 	return Game{
-		car: domain.Car{
-			Image: ebiten.NewImageFromImage(carImage),
-			Position: domain.Position{
-				X: 325,
-				Y: 700,
-			},
-			Speed: 15,
-			Fuel: domain.Fuel{
-				Percent: 100,
-				Time:    time.Now(),
-				Color:   domain.ColorGreen,
-			},
-			Angule: 0,
-		},
+		car:       domain.NewCar(),
 		score:     0,
 		level:     01,
 		obstacles: obstaclesGame,
 		road:      loadRoad(),
-		gameOver: domain.GameOver{
-			Flag:         false,
-			BoxPosition:  domain.Position{X: 280, Y: -100, Width: 210, Height: 60},
-			TextPosition: domain.Position{X: 300, Y: -100},
-		},
-	}, nil
+		gameOver:  domain.NewGameOver(),
+	}
 }
 
-func (g *Game) Update() error {
-	updateFuel(g)
-	updateRoad(g)
-	updateCar(g)
+func (game *Game) Update() error {
+	updateFuel(game)
+	updateRoad(game)
+	updateCar(game)
 	return nil
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
+func (game *Game) Draw(screen *ebiten.Image) {
 	//  create screen
 	bacgoundColor, err := helpers.HexToRGBA(domain.BacgoundColor)
 	if err != nil {
 		log.Fatal(err)
 	}
 	screen.Fill(bacgoundColor)
-	DrawRoad(screen, g)
-	for _, obstacle := range g.obstacles {
+	DrawRoad(screen, game)
+	for _, obstacle := range game.obstacles {
 		img := &ebiten.DrawImageOptions{}
-		img.GeoM.Scale(0.6, 0.6)
-		img.GeoM.Translate(float64(obstacle.Position.X), float64(obstacle.Position.Y))
+		// img.GeoM.Scale(0.6, 0.6)
+		img.GeoM.Translate(float64(obstacle.Object.Position.X), float64(obstacle.Object.Position.Y))
 		screen.DrawImage(obstacle.Image, img)
 	}
 	// create header
@@ -84,19 +63,56 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	LoadTextHeader("Fuel: "+strconv.Itoa(g.car.Fuel.Percent)+"%", 20, 20, 30, allanFont, screen, g.car.Fuel.Color)
-	LoadTextHeader("Score: "+strconv.Itoa(g.score), domain.GameWidth/2, 20, 30, allanFont, screen, domain.ColorWhite)
-	LoadTextHeader("Level: "+strconv.Itoa(g.level), domain.GameWidth-75, 20, 30, allanFont, screen, domain.ColorWhite)
-	DrawRectGame(float64(g.gameOver.BoxPosition.X), float64(g.gameOver.BoxPosition.Y), float64(g.gameOver.BoxPosition.Width), float64(g.gameOver.BoxPosition.Height), screen, domain.ColorDarkGray)
-	LoadTextHeader("Game Over", float64(g.gameOver.TextPosition.X), float64(g.gameOver.TextPosition.Y), 50, allanFont, screen, domain.ColorRed)
-	if g.car.Image != nil {
+	drawHeader(game, screen, allanFont)
+	DrawRectGame(
+		float64(game.gameOver.BoxObject.Position.X),
+		float64(game.gameOver.BoxObject.Position.Y),
+		float64(game.gameOver.BoxObject.Size.Width),
+		float64(game.gameOver.BoxObject.Size.Height),
+		screen,
+		domain.ColorDarkGray,
+	)
+	LoadText(
+		game.gameOver.Text,
+		float64(game.gameOver.TextPosition.X),
+		float64(game.gameOver.TextPosition.Y),
+		50,
+		allanFont,
+		screen,
+		domain.ColorRed,
+	)
+	if game.car.Image != nil {
 		carImage := &ebiten.DrawImageOptions{}
-		carImage.GeoM.Scale(0.25, 0.25)
-		carImage.GeoM.Translate(float64(g.car.Position.X), float64(g.car.Position.Y))
-		screen.DrawImage(g.car.Image, carImage)
+		// carImage.GeoM.Scale(0.25, 0.25)
+		carImage.GeoM.Translate(float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y))
+		screen.DrawImage(game.car.Image, carImage)
 	}
 }
 
-func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return int(domain.GameWidth), int(domain.GameHeight)
+func (game *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return domain.GameWidthInt(), domain.GameHeightInt()
+}
+
+func drawHeader(game *Game, screen *ebiten.Image, fontDraw *text.GoTextFaceSource) {
+	LoadText("Fuel: "+strconv.Itoa(game.car.Fuel.Percent)+"%", 20, 20, 30, fontDraw, screen, game.car.Fuel.Color)
+	LoadText("Score: "+strconv.Itoa(game.score), domain.GameWidth/2, 20, 30, fontDraw, screen, domain.ColorWhite)
+	LoadText("Level: "+strconv.Itoa(game.level), domain.GameWidth-75, 20, 30, fontDraw, screen, domain.ColorWhite)
+
+	DrawRectGame(10, 30, 700, 290, screen, domain.ColorDarkGray)
+	LoadText(strings.Join(getTextPosition("car", game.car.Object), " | "), 30, 50, 30, fontDraw, screen, domain.ColorRed)
+	LoadText(strings.Join(getTextPosition(game.obstacles[0].FilePath, game.obstacles[0].Object), " | "), 30, 100, 30, fontDraw, screen, domain.ColorRed)
+	LoadText(strings.Join(getTextPosition(game.obstacles[1].FilePath, game.obstacles[1].Object), " | "), 30, 140, 30, fontDraw, screen, domain.ColorRed)
+	LoadText(strings.Join(getTextPosition(game.obstacles[2].FilePath, game.obstacles[2].Object), " | "), 30, 180, 30, fontDraw, screen, domain.ColorRed)
+	LoadText(strings.Join(getTextPosition(game.obstacles[3].FilePath, game.obstacles[3].Object), " | "), 30, 220, 30, fontDraw, screen, domain.ColorRed)
+	LoadText(strings.Join(getTextPosition(game.obstacles[4].FilePath, game.obstacles[4].Object), " | "), 30, 260, 30, fontDraw, screen, domain.ColorRed)
+}
+
+func getTextPosition(name string, obj domain.Object) []string {
+	return []string{
+		name,
+		"width", strconv.Itoa(obj.Size.Width),
+		"height", strconv.Itoa(obj.Size.Height),
+		"x", strconv.Itoa(obj.Position.X),
+		"y", strconv.Itoa(obj.Position.Y),
+	}
 }

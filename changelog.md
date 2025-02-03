@@ -47,4 +47,12 @@
   - added constants
   - created role game over
 
+- 9º commit:
+  - refactored code
+  - created method to resize images
+  - created methods to inicialize objects
+  - created method to load image and resize
+  - fixed size of obstacles
+  - start conflict objects method
+
 [Readme](readme.md)

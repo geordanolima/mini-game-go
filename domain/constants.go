@@ -10,3 +10,10 @@ var ColorRed string = "#B50707"
 var ColorWhite string = "#FFFFFF"
 var ColorDarkGray string = "#0F0F0F"
 var BacgoundColor string = "#3C3C3C"
+
+func GameWidthInt() int {
+	return int(GameWidth)
+}
+func GameHeightInt() int {
+	return int(GameHeight)
+}

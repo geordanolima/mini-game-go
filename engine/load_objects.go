@@ -12,29 +12,49 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-func verifyCanAddNewObstacle(obstacles []domain.Obstacle, positionsX []int, addedNewObstacle bool, indice, obsY int) (bool, int) {
+func verifyCanAddNewObstacle(obstacles []domain.Obstacle, posX []int, newObstacle bool, indice, obsY int) (bool, int) {
 	for _, item := range obstacles {
-		h := item.Position.Height
-		y := item.Position.Y
+		h := item.Object.Size.Height
+		y := item.Object.Position.Y
 		posY := y > (obsY + h - 100)
-		addedNewObstacle = item.Position.X != positionsX[indice] || posY
-		if addedNewObstacle {
+		newObstacle = item.Object.Position.X != posX[indice] || posY
+		if newObstacle {
 			break
 		}
-		indice = rand.Intn(len(positionsX))
+		indice = rand.Intn(len(posX))
 	}
-	return addedNewObstacle, indice
+	return newObstacle, indice
 }
 
-func loadObstacles(numObstacles int, g *Game) ([]domain.Obstacle, error) {
-	imagePaths := []string{"cone.png", "cone2.png", "hole.png", "truck.png", "bus.png"}
-	obstacleImages := make([]*ebiten.Image, len(imagePaths))
-	for i, path := range imagePaths {
-		img, err := helpers.LoadImage(path)
+func loadObstacles(numObstacles int, game *Game) ([]domain.Obstacle, error) {
+	obstacleImages := []domain.Obstacle{
+		{FilePath: "cone.png", Object: domain.Object{
+			Size:     domain.Size{Width: 100, Height: 100},
+			Position: domain.Position{X: 20},
+		}},
+		{FilePath: "cone2.png", Object: domain.Object{
+			Size:     domain.Size{Width: 150, Height: 150},
+			Position: domain.Position{X: 20},
+		}},
+		{FilePath: "hole.png", Object: domain.Object{
+			Size:     domain.Size{Width: 100, Height: 100},
+			Position: domain.Position{X: 25},
+		}},
+		{FilePath: "truck.png", Object: domain.Object{
+			Size:     domain.Size{Width: 160, Height: 330},
+			Position: domain.Position{X: -5},
+		}},
+		{FilePath: "bus.png", Object: domain.Object{
+			Size:     domain.Size{Width: 150, Height: 430},
+			Position: domain.Position{X: 0},
+		}},
+	}
+	for i, obs := range obstacleImages {
+		img, err := helpers.LoadImageResize(obs.FilePath, obs.Object.Size.Width, obs.Object.Size.Height)
 		if err != nil {
-			return nil, fmt.Errorf("error loading obstacle image %s: %w", path, err)
+			return nil, fmt.Errorf("error loading obstacle image %s: %w", obs.FilePath, err)
 		}
-		obstacleImages[i] = ebiten.NewImageFromImage(img)
+		obstacleImages[i].Image = ebiten.NewImageFromImage(img)
 	}
 	obstacles := make([]domain.Obstacle, numObstacles)
 	positionsX := []int{15, 155, 305, 455, 605}
@@ -44,26 +64,21 @@ func loadObstacles(numObstacles int, g *Game) ([]domain.Obstacle, error) {
 		// get randon position
 		indice := rand.Intn(len(positionsX))
 		addedNewObstacle := false
-		if g == nil {
+		if game == nil {
 			addedNewObstacle = true
 		}
 		for !addedNewObstacle {
-			obsH := randomImage.Bounds().Dy()
+			obsH := randomImage.Image.Bounds().Dy()
 			obsY := -obsH + 50
-			// check the obstacles that are already added to the game
-			addedNewObstacle, indice = verifyCanAddNewObstacle(g.obstacles, positionsX, addedNewObstacle, indice, obsY)
-			// check the obstacles that will be added to the game
+			// TODO check the obstacles that are already added to the game
+			addedNewObstacle, indice = verifyCanAddNewObstacle(game.obstacles, positionsX, addedNewObstacle, indice, obsY)
+			// TODO check the obstacles that will be added to the game
 			addedNewObstacle, indice = verifyCanAddNewObstacle(obstacles, positionsX, addedNewObstacle, indice, obsY)
 		}
 		if addedNewObstacle {
-			obstacles[i] = domain.Obstacle{
-				Position: domain.Position{
-					X:      positionsX[indice],
-					Y:      -randomImage.Bounds().Dy() + 50 + (int(i/4) * 1300),
-					Height: randomImage.Bounds().Dy(),
-				},
-				Image: randomImage,
-			}
+			obstacles[i] = randomImage
+			obstacles[i].Object.Position.X += positionsX[indice]
+			obstacles[i].Object.Position.Y = -randomImage.Image.Bounds().Dy() + 50 + (int(i/4) * 1300)
 			positionsX[indice] = positionsX[len(positionsX)-1]
 			positionsX = positionsX[:len(positionsX)-1]
 		}
@@ -71,16 +86,21 @@ func loadObstacles(numObstacles int, g *Game) ([]domain.Obstacle, error) {
 	return obstacles, nil
 }
 
-func loadRoad() []domain.Position {
-	lines := make([]domain.Position, 21)
+func loadRoad() []domain.Object {
+	lines := make([]domain.Object, 21)
 	positionsX := []int{150, 300, 450, 600}
 	index := 0
 	for line := 0; line <= 4; line++ {
 		for column := 0; column <= 3; column++ {
-			lines[index] = domain.Position{
-				X:      positionsX[column],
-				Y:      int(int(domain.LineHeight+50) * line),
-				Height: int(domain.LineHeight),
+			lines[index] = domain.Object{
+				Position: domain.Position{
+					X: positionsX[column],
+					Y: int(int(domain.LineHeight+50) * line),
+				},
+				Size: domain.Size{
+					Height: int(domain.LineHeight),
+					Width:  0,
+				},
 			}
 			index++
 		}
@@ -88,33 +108,33 @@ func loadRoad() []domain.Position {
 	return lines
 }
 
-func LoadTextHeader(textDraw string, positionX, positionY, size float64, fontDraw *text.GoTextFaceSource, screen *ebiten.Image, textColor string) {
+func LoadText(textDraw string, posX, posY, size float64, font *text.GoTextFaceSource, screen *ebiten.Image, color string) {
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(positionX, positionY)
-	textColorRgba, _ := helpers.HexToRGBA(textColor)
+	op.GeoM.Translate(posX, posY)
+	colorRgba, _ := helpers.HexToRGBA(color)
 	op.ColorM.Scale(
-		float64(textColorRgba.R)/255,
-		float64(textColorRgba.G)/255,
-		float64(textColorRgba.B)/255,
-		float64(textColorRgba.A)/255,
+		float64(colorRgba.R)/255,
+		float64(colorRgba.G)/255,
+		float64(colorRgba.B)/255,
+		float64(colorRgba.A)/255,
 	)
 	op.LineSpacing = 30
 
 	text.Draw(screen, textDraw, &text.GoTextFace{
-		Source: fontDraw,
+		Source: font,
 		Size:   size,
 	}, op)
 }
 
-func DrawRoad(screen *ebiten.Image, g *Game) {
+func DrawRoad(screen *ebiten.Image, game *Game) {
 	// create lines of road
 	DrawRectGame(0, 0, domain.LineWidth, domain.GameHeight, screen, domain.ColorWhite)
 	DrawRectGame(domain.GameWidth-domain.LineWidth, 0, domain.LineWidth, domain.GameHeight, screen, domain.ColorWhite)
 
-	for i := 0; i < len(g.road); i++ {
+	for i := 0; i < len(game.road); i++ {
 		DrawRectGame(
-			float64(g.road[i].X),
-			float64(g.road[i].Y)+float64(g.car.Speed),
+			float64(game.road[i].Position.X),
+			float64(game.road[i].Position.Y)+float64(game.car.Speed),
 			domain.LineWidth,
 			domain.LineHeight,
 			screen,

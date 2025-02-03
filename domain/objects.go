@@ -7,12 +7,28 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Car struct {
+type Position struct {
+	X int
+	Y int
+}
+
+type Size struct {
+	Width  int
+	Height int
+}
+
+type Object struct {
+	Size     Size
 	Position Position
-	Image    *ebiten.Image
-	Speed    int
-	Fuel     Fuel
 	Angule   int
+}
+
+type Car struct {
+	Object Object
+	Image  *ebiten.Image
+	Speed  int
+	Fuel   Fuel
+	Angule int
 }
 
 type Fuel struct {
@@ -22,8 +38,9 @@ type Fuel struct {
 }
 
 type Obstacle struct {
-	Position Position
+	Object   Object
 	Image    *ebiten.Image
+	FilePath string
 }
 
 type Game struct {
@@ -32,6 +49,7 @@ type Game struct {
 
 type GameOver struct {
 	Flag         bool
-	BoxPosition  Position
+	BoxObject    Object
 	TextPosition Position
+	Text         string
 }

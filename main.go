@@ -9,11 +9,8 @@ import (
 )
 
 func main() {
-	// create a game
-	game, err := engine.NewGame()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// create game
+	game := engine.NewGame()
 	ebiten.SetWindowSize(game.Layout(0, 0))
 	ebiten.SetWindowTitle("Car race")
 	// run game
