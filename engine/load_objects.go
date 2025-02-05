@@ -31,22 +31,27 @@ func loadObstacles(numObstacles int, game *Game) ([]domain.Obstacle, error) {
 		{FilePath: "cone.png", Object: domain.Object{
 			Size:     domain.Size{Width: 100, Height: 100},
 			Position: domain.Position{X: 20},
+			Margin:   -30,
 		}},
 		{FilePath: "cone2.png", Object: domain.Object{
 			Size:     domain.Size{Width: 150, Height: 150},
 			Position: domain.Position{X: 20},
+			Margin:   -30,
 		}},
 		{FilePath: "hole.png", Object: domain.Object{
 			Size:     domain.Size{Width: 100, Height: 100},
 			Position: domain.Position{X: 25},
+			Margin:   -35,
 		}},
 		{FilePath: "truck.png", Object: domain.Object{
 			Size:     domain.Size{Width: 160, Height: 330},
 			Position: domain.Position{X: -5},
+			Margin:   -15,
 		}},
 		{FilePath: "bus.png", Object: domain.Object{
 			Size:     domain.Size{Width: 150, Height: 430},
 			Position: domain.Position{X: 0},
+			Margin:   -15,
 		}},
 	}
 	for i, obs := range obstacleImages {

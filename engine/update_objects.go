@@ -2,7 +2,6 @@ package engine
 
 import (
 	"mini-game-go/domain"
-	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -59,18 +58,24 @@ func updateFuel(game *Game) {
 	}
 }
 
-func verifyConflict(game *Game, mainObject, conflictObject domain.Object, margin int) bool {
-	// mainObject = car
-	// conflictObject = obstacle
-	confiltoSupDir := mainObject.Position.X+mainObject.Size.Width+margin <= conflictObject.Position.X+conflictObject.Size.Width
-	confiltoSupEsc := mainObject.Position.X+margin > conflictObject.Position.X
-	if confiltoSupDir && confiltoSupEsc {
-		if mainObject.Position.Y-margin <= conflictObject.Position.Y+conflictObject.Size.Height {
-			game.gameOver.Text = strconv.FormatBool(confiltoSupDir) + "|" + strconv.FormatBool(confiltoSupEsc)
-			return true
-		}
-	}
-	return false
+func verifyConflict(mainObject, conflictObject domain.Object) bool {
+	mainWidth := mainObject.Size.Width
+	mainHeight := mainObject.Size.Height
+	mainX := mainObject.Position.X
+	mainY := mainObject.Position.Y
+
+	confWidth := conflictObject.Size.Width
+	confHeight := conflictObject.Size.Height
+	confX := conflictObject.Position.X
+	confY := conflictObject.Position.Y
+	margin := conflictObject.Margin
+
+	conflitoDir := (mainX+mainWidth+margin <= confX+confWidth || mainX+margin <= conflictObject.Position.X+confWidth)
+	conflitoEsc := (mainX+margin >= conflictObject.Position.X || mainX+mainWidth+margin >= conflictObject.Position.X)
+	confSup := mainY-margin <= confY+confHeight
+	confInf := mainY+mainHeight+margin >= confY
+
+	return conflitoDir && conflitoEsc && confSup && confInf
 }
 
 func updateCar(game *Game) {
@@ -78,7 +83,7 @@ func updateCar(game *Game) {
 		return
 	}
 	for i := 0; i < len(game.obstacles); i++ {
-		if verifyConflict(game, game.car.Object, game.obstacles[i].Object, 0) {
+		if verifyConflict(game.car.Object, game.obstacles[i].Object) {
 			drawGameOver(game)
 		}
 	}

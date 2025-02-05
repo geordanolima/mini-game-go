@@ -55,4 +55,9 @@
   - fixed size of obstacles
   - start conflict objects method
 
+- 9º commit:
+  - refactored code
+  - finish conflict objects method
+  
+
 [Readme](readme.md)

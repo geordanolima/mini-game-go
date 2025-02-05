@@ -21,6 +21,7 @@ type Object struct {
 	Size     Size
 	Position Position
 	Angule   int
+	Margin   int
 }
 
 type Car struct {
