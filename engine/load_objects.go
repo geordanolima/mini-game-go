@@ -31,27 +31,27 @@ func loadObstacles(numObstacles int, game *Game) ([]domain.Obstacle, error) {
 		{FilePath: "cone.png", Object: domain.Object{
 			Size:     domain.Size{Width: 100, Height: 100},
 			Position: domain.Position{X: 20},
-			Margin:   -30,
+			Margin:   30,
 		}},
 		{FilePath: "cone2.png", Object: domain.Object{
-			Size:     domain.Size{Width: 150, Height: 150},
-			Position: domain.Position{X: 20},
-			Margin:   -30,
+			Size:     domain.Size{Width: 125, Height: 125},
+			Position: domain.Position{X: 10},
+			Margin:   45,
 		}},
 		{FilePath: "hole.png", Object: domain.Object{
 			Size:     domain.Size{Width: 100, Height: 100},
 			Position: domain.Position{X: 25},
-			Margin:   -35,
+			Margin:   55,
 		}},
 		{FilePath: "truck.png", Object: domain.Object{
 			Size:     domain.Size{Width: 160, Height: 330},
-			Position: domain.Position{X: -5},
-			Margin:   -15,
+			Position: domain.Position{X: 5},
+			Margin:   8,
 		}},
 		{FilePath: "bus.png", Object: domain.Object{
 			Size:     domain.Size{Width: 150, Height: 430},
 			Position: domain.Position{X: 0},
-			Margin:   -15,
+			Margin:   25,
 		}},
 	}
 	for i, obs := range obstacleImages {
@@ -68,10 +68,26 @@ func loadObstacles(numObstacles int, game *Game) ([]domain.Obstacle, error) {
 		randomImage := obstacleImages[rand.Intn(len(obstacleImages))]
 		// get randon position
 		indice := rand.Intn(len(positionsX))
+		// listObstacles := obstacles
+		// if game != nil {
+		// 	listObstacles = game.obstacles
+		// }
+		// for _, item := range listObstacles {
+		// 	hasConflict := verifyConflict(randomImage.Object, item.Object)
+		// 	if !hasConflict {
+		// 		obstacles[i] = randomImage
+		// 		obstacles[i].Object.Position.X += positionsX[indice]
+		// 		obstacles[i].Object.Position.Y = -(randomImage.Image.Bounds().Dy() + (int(i/4) * 1300))
+		// 		positionsX[indice] = positionsX[len(positionsX)-1]
+		// 		positionsX = positionsX[:len(positionsX)-1]
+		// 		break
+		// 	}
+		// }
 		addedNewObstacle := false
 		if game == nil {
 			addedNewObstacle = true
 		}
+
 		for !addedNewObstacle {
 			obsH := randomImage.Image.Bounds().Dy()
 			obsY := -obsH + 50
@@ -83,7 +99,7 @@ func loadObstacles(numObstacles int, game *Game) ([]domain.Obstacle, error) {
 		if addedNewObstacle {
 			obstacles[i] = randomImage
 			obstacles[i].Object.Position.X += positionsX[indice]
-			obstacles[i].Object.Position.Y = -randomImage.Image.Bounds().Dy() + 50 + (int(i/4) * 1300)
+			obstacles[i].Object.Position.Y = -(randomImage.Image.Bounds().Dy() + 50 + (int(i/4) * 1300))
 			positionsX[indice] = positionsX[len(positionsX)-1]
 			positionsX = positionsX[:len(positionsX)-1]
 		}

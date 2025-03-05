@@ -6,7 +6,6 @@ import (
 	"mini-game-go/domain"
 	"mini-game-go/helpers"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -50,19 +49,28 @@ func (game *Game) Draw(screen *ebiten.Image) {
 		log.Fatal(err)
 	}
 	screen.Fill(bacgoundColor)
+	allanFont, err := helpers.LoadFont("AllanRegular.ttf")
+	if err != nil {
+		log.Fatal(err)
+	}
 	DrawRoad(screen, game)
 	for _, obstacle := range game.obstacles {
 		img := &ebiten.DrawImageOptions{}
 		// img.GeoM.Scale(0.6, 0.6)
 		img.GeoM.Translate(float64(obstacle.Object.Position.X), float64(obstacle.Object.Position.Y))
 		screen.DrawImage(obstacle.Image, img)
+		LoadText(
+			"y:["+strconv.Itoa(obstacle.Object.Position.Y)+"] yh:["+strconv.Itoa(obstacle.Object.Position.Y+obstacle.Object.Size.Height)+"]",
+			float64(obstacle.Object.Position.X),
+			float64(obstacle.Object.Position.Y+obstacle.Object.Size.Height-obstacle.Object.Margin),
+			30,
+			allanFont,
+			screen,
+			domain.ColorDarkGray,
+		)
 	}
 	// create header
 	DrawRectGame(0, 0, domain.GameWidth, 55, screen, domain.ColorDarkGray)
-	allanFont, err := helpers.LoadFont("AllanRegular.ttf")
-	if err != nil {
-		log.Fatal(err)
-	}
 	drawHeader(game, screen, allanFont)
 	DrawRectGame(
 		float64(game.gameOver.BoxObject.Position.X),
@@ -83,9 +91,9 @@ func (game *Game) Draw(screen *ebiten.Image) {
 	)
 	if game.car.Image != nil {
 		carImage := &ebiten.DrawImageOptions{}
-		// carImage.GeoM.Scale(0.25, 0.25)
 		carImage.GeoM.Translate(float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y))
 		screen.DrawImage(game.car.Image, carImage)
+		LoadText("x:["+strconv.Itoa(game.car.Object.Position.X)+"] y:["+strconv.Itoa(game.car.Object.Position.Y)+"]", float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y), 30, allanFont, screen, domain.ColorDarkGray)
 	}
 }
 
@@ -98,21 +106,22 @@ func drawHeader(game *Game, screen *ebiten.Image, fontDraw *text.GoTextFaceSourc
 	LoadText("Score: "+strconv.Itoa(game.score), domain.GameWidth/2, 20, 30, fontDraw, screen, domain.ColorWhite)
 	LoadText("Level: "+strconv.Itoa(game.level), domain.GameWidth-75, 20, 30, fontDraw, screen, domain.ColorWhite)
 
-	DrawRectGame(10, 30, 700, 290, screen, domain.ColorDarkGray)
-	LoadText(strings.Join(getTextPosition("car", game.car.Object), " | "), 30, 50, 30, fontDraw, screen, domain.ColorRed)
-	LoadText(strings.Join(getTextPosition(game.obstacles[0].FilePath, game.obstacles[0].Object), " | "), 30, 100, 30, fontDraw, screen, domain.ColorRed)
-	LoadText(strings.Join(getTextPosition(game.obstacles[1].FilePath, game.obstacles[1].Object), " | "), 30, 140, 30, fontDraw, screen, domain.ColorRed)
-	LoadText(strings.Join(getTextPosition(game.obstacles[2].FilePath, game.obstacles[2].Object), " | "), 30, 180, 30, fontDraw, screen, domain.ColorRed)
-	LoadText(strings.Join(getTextPosition(game.obstacles[3].FilePath, game.obstacles[3].Object), " | "), 30, 220, 30, fontDraw, screen, domain.ColorRed)
-	LoadText(strings.Join(getTextPosition(game.obstacles[4].FilePath, game.obstacles[4].Object), " | "), 30, 260, 30, fontDraw, screen, domain.ColorRed)
+	// DrawRectGame(10, 30, 700, 290, screen, domain.ColorDarkGray)
+	// LoadText(strings.Join(getTextPosition("car", game.car.Object), " | "), 30, 50, 30, fontDraw, screen, domain.ColorRed)
+	// LoadText(strings.Join(getTextPosition(game.obstacles[0].FilePath, game.obstacles[0].Object), " | "), 30, 100, 30, fontDraw, screen, domain.ColorRed)
+	// LoadText(strings.Join(getTextPosition(game.obstacles[1].FilePath, game.obstacles[1].Object), " | "), 30, 140, 30, fontDraw, screen, domain.ColorRed)
+	// LoadText(strings.Join(getTextPosition(game.obstacles[2].FilePath, game.obstacles[2].Object), " | "), 30, 180, 30, fontDraw, screen, domain.ColorRed)
+	// LoadText(strings.Join(getTextPosition(game.obstacles[3].FilePath, game.obstacles[3].Object), " | "), 30, 220, 30, fontDraw, screen, domain.ColorRed)
+	// LoadText(strings.Join(getTextPosition(game.obstacles[4].FilePath, game.obstacles[4].Object), " | "), 30, 260, 30, fontDraw, screen, domain.ColorRed)
 }
 
-func getTextPosition(name string, obj domain.Object) []string {
-	return []string{
-		name,
-		"width", strconv.Itoa(obj.Size.Width),
-		"height", strconv.Itoa(obj.Size.Height),
-		"x", strconv.Itoa(obj.Position.X),
-		"y", strconv.Itoa(obj.Position.Y),
-	}
-}
+// func getTextPosition(name string, obj domain.Object) []string {
+// 	return []string{
+// 		name,
+// 		fmt.Sprint(obj.Angule),
+// 		"x", strconv.Itoa(obj.Position.X),
+// 		"y", strconv.Itoa(obj.Position.Y),
+// 		"x+w", strconv.Itoa(obj.Position.X + obj.Size.Width),
+// 		"y+h", strconv.Itoa(obj.Position.Y + obj.Size.Height),
+// 	}
+// }

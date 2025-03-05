@@ -70,10 +70,10 @@ func verifyConflict(mainObject, conflictObject domain.Object) bool {
 	confY := conflictObject.Position.Y
 	margin := conflictObject.Margin
 
-	conflitoDir := (mainX+mainWidth+margin <= confX+confWidth || mainX+margin <= conflictObject.Position.X+confWidth)
-	conflitoEsc := (mainX+margin >= conflictObject.Position.X || mainX+mainWidth+margin >= conflictObject.Position.X)
-	confSup := mainY-margin <= confY+confHeight
-	confInf := mainY+mainHeight+margin >= confY
+	conflitoDir := (mainX+mainWidth+margin <= confX+confWidth || mainX+margin <= confX+confWidth)
+	conflitoEsc := (mainX >= confX-margin || mainX+mainWidth >= confX+margin)
+	confSup := mainY <= confY+confHeight-margin
+	confInf := mainY+mainHeight-margin >= confY
 
 	return conflitoDir && conflitoEsc && confSup && confInf
 }
@@ -84,6 +84,7 @@ func updateCar(game *Game) {
 	}
 	for i := 0; i < len(game.obstacles); i++ {
 		if verifyConflict(game.car.Object, game.obstacles[i].Object) {
+			game.gameOver.Text = game.obstacles[i].FilePath
 			drawGameOver(game)
 		}
 	}
