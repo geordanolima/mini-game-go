@@ -109,10 +109,10 @@ func updateCar(game *Game) {
 		return
 	}
 	for i := 0; i < len(game.obstacles); i++ {
-		// if verifyConflict(game.car.Object, game.obstacles[i].Object, false) {
-		// 	game.gameOver.Text = game.obstacles[i].FilePath
-		// 	drawGameOver(game)
-		// }
+		if verifyConflict(game.car.Object, game.obstacles[i].Object, false) {
+			// game.gameOver.Text = game.obstacles[i].FilePath
+			drawGameOver(game)
+		}
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowLeft) || ebiten.IsKeyPressed(ebiten.KeyA)) &&
 		game.car.Object.Position.X >= 20 {

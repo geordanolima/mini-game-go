@@ -76,6 +76,12 @@ func (game *Game) Draw(screen *ebiten.Image) {
 	}
 	DrawRectGame(0, 0, domain.GameWidth, 55, screen, domain.ColorDarkGray)
 	drawHeader(game, screen, allanFont)
+	if game.car.Image != nil {
+		carImage := &ebiten.DrawImageOptions{}
+		carImage.GeoM.Translate(float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y))
+		screen.DrawImage(game.car.Image, carImage)
+		// LoadText("x:["+strconv.Itoa(game.car.Object.Position.X)+"] y:["+strconv.Itoa(game.car.Object.Position.Y)+"]", float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y), 30, allanFont, screen, domain.ColorDarkGray)
+	}
 	//load gameover box
 	DrawRectGame(
 		float64(game.gameOver.BoxObject.Position.X),
@@ -95,12 +101,6 @@ func (game *Game) Draw(screen *ebiten.Image) {
 		screen,
 		domain.ColorRed,
 	)
-	if game.car.Image != nil {
-		carImage := &ebiten.DrawImageOptions{}
-		carImage.GeoM.Translate(float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y))
-		screen.DrawImage(game.car.Image, carImage)
-		// LoadText("x:["+strconv.Itoa(game.car.Object.Position.X)+"] y:["+strconv.Itoa(game.car.Object.Position.Y)+"]", float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y), 30, allanFont, screen, domain.ColorDarkGray)
-	}
 }
 
 func (game *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
