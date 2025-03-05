@@ -25,11 +25,12 @@ type Object struct {
 }
 
 type Car struct {
-	Object Object
-	Image  *ebiten.Image
-	Speed  int
-	Fuel   Fuel
-	Angule int
+	Object    Object
+	Image     *ebiten.Image
+	Speed     int
+	SpeedView int
+	Fuel      Fuel
+	Angule    int
 }
 
 type Fuel struct {
@@ -39,6 +40,13 @@ type Fuel struct {
 }
 
 type Obstacle struct {
+	Object   Object
+	Image    *ebiten.Image
+	FilePath string
+}
+
+type Gasoline struct {
+	Percent  int
 	Object   Object
 	Image    *ebiten.Image
 	FilePath string

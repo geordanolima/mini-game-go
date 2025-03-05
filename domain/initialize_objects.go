@@ -1,15 +1,13 @@
 package domain
 
 import (
-	"mini-game-go/helpers"
+	"image"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewCar() Car {
-	carSize := Size{Height: 290, Width: 120}
-	carImage, _ := helpers.LoadImageResize("car.png", carSize.Width, carSize.Height)
+func NewCar(carImage image.Image, carSize Size) Car {
 	return Car{
 		Image: ebiten.NewImageFromImage(carImage),
 		Object: Object{
@@ -20,7 +18,8 @@ func NewCar() Car {
 			Size:   carSize,
 			Angule: 0,
 		},
-		Speed: 5,
+		Speed:     5,
+		SpeedView: 10,
 		Fuel: Fuel{
 			Percent: 100,
 			Time:    time.Now(),

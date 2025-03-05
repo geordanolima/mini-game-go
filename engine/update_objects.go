@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"math/rand"
 	"mini-game-go/domain"
+	"mini-game-go/helpers"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -35,6 +37,12 @@ func moveObstaclesRoad(game *Game) {
 			game.obstacles = append(game.obstacles, obstaclesGame[0])
 		}
 	}
+	game.objectGas.Object.Position.Y += game.car.Speed * 2
+	if game.objectGas.Object.Position.Y > domain.GameHeightInt() {
+		game.objectGas.Object.Position.Y = -1000
+		game.objectGas.Percent = helpers.GetProportionalPercent()
+		game.objectGas.Object.Position.X = domain.PositionsX[rand.Intn(len(domain.PositionsX))]
+	}
 }
 
 func updateFuel(game *Game) {
@@ -51,6 +59,15 @@ func updateFuel(game *Game) {
 			taxConsume = 1
 		}
 		game.car.Fuel.Percent -= taxConsume
+		if game.car.Fuel.Percent%5 == 0 {
+			for i := 9; i > 0; i-- {
+				if game.car.Fuel.Percent > i*10 {
+					game.car.Speed += 10 - i + game.dificulty
+					game.car.SpeedView += 5 * (10 - i)
+					break
+				}
+			}
+		}
 		if game.car.Fuel.Percent <= 0 {
 			game.car.Fuel.Percent = 0
 			drawGameOver(game)
@@ -58,7 +75,7 @@ func updateFuel(game *Game) {
 	}
 }
 
-func verifyConflict(mainObject, conflictObject domain.Object) bool {
+func verifyConflict(mainObject, conflictObject domain.Object, validateHeight bool) bool {
 	mainWidth := mainObject.Size.Width
 	mainHeight := mainObject.Size.Height
 	mainX := mainObject.Position.X
@@ -70,12 +87,21 @@ func verifyConflict(mainObject, conflictObject domain.Object) bool {
 	confY := conflictObject.Position.Y
 	margin := conflictObject.Margin
 
-	conflitoDir := (mainX+mainWidth+margin <= confX+confWidth || mainX+margin <= confX+confWidth)
-	conflitoEsc := (mainX >= confX-margin || mainX+mainWidth >= confX+margin)
-	confSup := mainY <= confY+confHeight-margin
-	confInf := mainY+mainHeight-margin >= confY
+	overlapX := mainX < confX+confWidth+margin && mainX+mainWidth+margin > confX
+	overlapY := mainY < confY+confHeight+margin && mainY+mainHeight+margin > confY
 
-	return conflitoDir && conflitoEsc && confSup && confInf
+	if validateHeight {
+		conflitoDir := (mainX+mainWidth+margin <= confX+confWidth || mainX+margin <= confX+confWidth)
+		conflitoEsc := (mainX >= confX-margin || mainX+mainWidth >= confX+margin)
+
+		confSup := mainY <= confY+confHeight-margin
+		confInf := mainY+mainHeight-margin >= confY
+
+		confH := confY > mainY+mainHeight && mainY < confY
+		confH2 := mainY > confY+confHeight && mainY > confY
+		return overlapX && overlapY && conflitoDir && conflitoEsc && confSup && confInf && confH && confH2
+	}
+	return overlapX && overlapY
 }
 
 func updateCar(game *Game) {
@@ -83,12 +109,11 @@ func updateCar(game *Game) {
 		return
 	}
 	for i := 0; i < len(game.obstacles); i++ {
-		if verifyConflict(game.car.Object, game.obstacles[i].Object) {
-			game.gameOver.Text = game.obstacles[i].FilePath
-			drawGameOver(game)
-		}
+		// if verifyConflict(game.car.Object, game.obstacles[i].Object, false) {
+		// 	game.gameOver.Text = game.obstacles[i].FilePath
+		// 	drawGameOver(game)
+		// }
 	}
-	//  update position main car
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowLeft) || ebiten.IsKeyPressed(ebiten.KeyA)) &&
 		game.car.Object.Position.X >= 20 {
 		game.car.Object.Position.X -= int(game.car.Speed)
@@ -104,13 +129,6 @@ func updateCar(game *Game) {
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowDown) || ebiten.IsKeyPressed(ebiten.KeyS)) &&
 		game.car.Object.Position.Y <= domain.GameWidthInt()-20 {
 		game.car.Object.Position.Y += int(game.car.Speed)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		if game.car.Speed == 0 {
-			game.car.Speed = 5
-		} else {
-			game.car.Speed = 0
-		}
 	}
 }
 
