@@ -16,7 +16,7 @@ import (
 type Game struct {
 	car       domain.Car
 	obstacles []domain.Obstacle
-	score     int
+	score     domain.Score
 	level     int
 	road      []domain.Object
 	roadMove  time.Time
@@ -33,7 +33,7 @@ func NewGame() Game {
 	carImage, _ := helpers.LoadImageResize("car.png", carSize.Width, carSize.Height)
 	return Game{
 		car:       domain.NewCar(carImage, carSize),
-		score:     0,
+		score:     domain.Score{Score: 0, Time: time.Now()},
 		level:     01,
 		obstacles: obstaclesGame,
 		road:      loadRoad(),
@@ -43,6 +43,7 @@ func NewGame() Game {
 
 func (game *Game) Update() error {
 	updateFuel(game)
+	updateScore(game)
 	updateRoad(game)
 	updateCar(game)
 	return nil
@@ -61,18 +62,11 @@ func (game *Game) Draw(screen *ebiten.Image) {
 	DrawRoad(screen, game)
 	drawGas(screen, game)
 	for _, obstacle := range game.obstacles {
-		img := &ebiten.DrawImageOptions{}
-		img.GeoM.Translate(float64(obstacle.Object.Position.X), float64(obstacle.Object.Position.Y))
-		screen.DrawImage(obstacle.Image, img)
-		// LoadText(
-		// 	"y:["+strconv.Itoa(obstacle.Object.Position.Y)+"] yh:["+strconv.Itoa(obstacle.Object.Position.Y+obstacle.Object.Size.Height)+"]",
-		// 	float64(obstacle.Object.Position.X),
-		// 	float64(obstacle.Object.Position.Y+obstacle.Object.Size.Height-obstacle.Object.Margin),
-		// 	30,
-		// 	allanFont,
-		// 	screen,
-		// 	domain.ColorDarkGray,
-		// )
+		if obstacle.Image != nil {
+			img := &ebiten.DrawImageOptions{}
+			img.GeoM.Translate(float64(obstacle.Object.Position.X), float64(obstacle.Object.Position.Y))
+			screen.DrawImage(obstacle.Image, img)
+		}
 	}
 	DrawRectGame(0, 0, domain.GameWidth, 55, screen, domain.ColorDarkGray)
 	drawHeader(game, screen, allanFont)
@@ -80,7 +74,6 @@ func (game *Game) Draw(screen *ebiten.Image) {
 		carImage := &ebiten.DrawImageOptions{}
 		carImage.GeoM.Translate(float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y))
 		screen.DrawImage(game.car.Image, carImage)
-		// LoadText("x:["+strconv.Itoa(game.car.Object.Position.X)+"] y:["+strconv.Itoa(game.car.Object.Position.Y)+"]", float64(game.car.Object.Position.X), float64(game.car.Object.Position.Y), 30, allanFont, screen, domain.ColorDarkGray)
 	}
 	//load gameover box
 	DrawRectGame(
@@ -109,7 +102,7 @@ func (game *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHe
 
 func drawHeader(game *Game, screen *ebiten.Image, fontDraw *text.GoTextFaceSource) {
 	LoadText("Fuel: "+strconv.Itoa(game.car.Fuel.Percent)+"%", 20, 20, 30, fontDraw, screen, game.car.Fuel.Color)
-	LoadText("Score: "+strconv.Itoa(game.score), domain.GameWidth/2, 20, 30, fontDraw, screen, domain.ColorWhite)
+	LoadText("Score: "+strconv.Itoa(game.score.Score), domain.GameWidth/2, 20, 30, fontDraw, screen, domain.ColorWhite)
 	LoadText("Speed: "+strconv.Itoa(game.car.SpeedView), domain.GameWidth-120, 20, 30, fontDraw, screen, domain.ColorWhite)
 }
 

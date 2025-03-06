@@ -72,4 +72,9 @@
   - move constants to file domain/constants.go
   - change view percent speed of main car
 
+- 12º commit:
+  - create role to add percent fuel when car get gas
+  - refactor role conflict objects
+  - create score role
+
 [Readme](readme.md)

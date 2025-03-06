@@ -135,7 +135,7 @@ func drawGas(screen *ebiten.Image, game *Game) error {
 			FilePath: "gasoline.png",
 			Object: domain.Object{
 				Size:     domain.Size{Width: 125, Height: 125},
-				Position: domain.Position{X: domain.PositionsX[rand.Intn(len(domain.PositionsX))], Y: 100},
+				Position: domain.Position{X: domain.PositionsX[rand.Intn(len(domain.PositionsX))], Y: -1000},
 				Margin:   -30,
 			},
 		}

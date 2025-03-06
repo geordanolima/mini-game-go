@@ -39,6 +39,11 @@ type Fuel struct {
 	Color   string
 }
 
+type Score struct {
+	Score int
+	Time  time.Time
+}
+
 type Obstacle struct {
 	Object   Object
 	Image    *ebiten.Image

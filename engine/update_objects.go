@@ -28,6 +28,7 @@ func moveLinesRoad(game *Game) {
 		}
 	}
 }
+
 func moveObstaclesRoad(game *Game) {
 	for i := 0; i < len(game.obstacles); i++ {
 		game.obstacles[i].Object.Position.Y += game.car.Speed * 2
@@ -97,23 +98,41 @@ func verifyConflict(mainObject, conflictObject domain.Object, validateHeight boo
 		confSup := mainY <= confY+confHeight-margin
 		confInf := mainY+mainHeight-margin >= confY
 
-		confH := confY > mainY+mainHeight && mainY < confY
-		confH2 := mainY > confY+confHeight && mainY > confY
-		return overlapX && overlapY && conflitoDir && conflitoEsc && confSup && confInf && confH && confH2
+		confH := confY < mainY+mainHeight && mainY < confY && mainY < confY+confHeight
+		return overlapX && overlapY && conflitoDir && conflitoEsc && confSup && confInf && confH
 	}
 	return overlapX && overlapY
+}
+
+func updateScore(game *Game) {
+	if game.gameOver.Flag {
+		return
+	}
+	if time.Since(game.score.Time) >= 1000*time.Millisecond {
+		game.score.Score += game.car.Speed / 5
+		game.score.Time = time.Now()
+	}
 }
 
 func updateCar(game *Game) {
 	if game.gameOver.Flag {
 		return
 	}
+	// verify game over
 	for i := 0; i < len(game.obstacles); i++ {
 		if verifyConflict(game.car.Object, game.obstacles[i].Object, false) {
-			// game.gameOver.Text = game.obstacles[i].FilePath
 			drawGameOver(game)
 		}
 	}
+	// verify if get fuel
+	if verifyConflict(game.car.Object, game.objectGas.Object, true) {
+		game.objectGas.Image = nil
+		game.car.Fuel.Percent += game.objectGas.Percent
+		if game.car.Fuel.Percent > 100 {
+			game.car.Fuel.Percent = 100
+		}
+	}
+	// move car
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowLeft) || ebiten.IsKeyPressed(ebiten.KeyA)) &&
 		game.car.Object.Position.X >= 20 {
 		game.car.Object.Position.X -= int(game.car.Speed)
