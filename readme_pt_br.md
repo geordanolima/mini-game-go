@@ -1,3 +1,5 @@
+Este projeto possui readme em Portugues e ingles (veja links).
+
 # Mini game go (corrida de carro)
 
 Este projeto é um jogo simples com objetivo principal de aprendizado e exploração da linguagem Golang.
@@ -20,4 +22,4 @@ Veja abaixo como é o jogo (imagem do jogo criada no Figma):<br>
 
 ## Links
 [Changelog](changelog.md)<br/>
-[Voltar](readme.md)
+[English (EN)](readme.md)

@@ -58,6 +58,18 @@
 - 9º commit:
   - refactored code
   - finish conflict objects method
-  
+
+- 10º commit:
+  - refactor conflict roles
+  - added position in screen for obstacles and main car
+
+- 11º commit:
+  - create method to draw gaslonine fuel randon
+  - create method to get percent proportional to gasoline
+  - refactored code
+  - remove comments
+  - add assets to gasoline/fuel
+  - move constants to file domain/constants.go
+  - change view percent speed of main car
 
 [Readme](readme.md)
