@@ -77,4 +77,10 @@
   - refactor role conflict objects
   - create score role
 
+- 13º commit:
+  - refactored code and renamed variables and methods
+  - remove unnecessary methods
+  - changed the type of some variables
+  - created menu screen
+
 [Readme](readme.md)

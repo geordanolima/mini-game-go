@@ -8,26 +8,26 @@ import (
 )
 
 type Position struct {
-	X int
-	Y int
+	X float64
+	Y float64
 }
 
 type Size struct {
-	Width  int
-	Height int
+	Width  float64
+	Height float64
 }
 
 type Object struct {
 	Size     Size
 	Position Position
 	Angule   int
-	Margin   int
+	Margin   float64
 }
 
 type Car struct {
 	Object    Object
 	Image     *ebiten.Image
-	Speed     int
+	Speed     float64
 	SpeedView int
 	Fuel      Fuel
 	Angule    int
@@ -62,8 +62,24 @@ type Game struct {
 }
 
 type GameOver struct {
-	Flag         bool
-	BoxObject    Object
-	TextPosition Position
-	Text         string
+	Flag        bool
+	BoxObject   Object
+	TextOptions TextOptions
+}
+
+type TextOptions struct {
+	Text     string
+	TextSize float64
+	Position Position
+}
+
+type Action struct {
+	TextOptions TextOptions
+	Object      Object
+	Visible     bool
+	State       GameState
+}
+
+type Menu struct {
+	Actions []Action
 }

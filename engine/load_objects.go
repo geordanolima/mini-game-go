@@ -15,7 +15,7 @@ import (
 
 func loadObstacles(numObstacles int, game *Game) ([]domain.Obstacle, error) {
 	obstacles := make([]domain.Obstacle, numObstacles)
-	positionsX := make([]int, len(domain.PositionsX))
+	positionsX := make([]float64, len(domain.PositionsX))
 	copy(positionsX, domain.PositionsX)
 	for i := 0; i < numObstacles; i++ {
 		randomImage := domain.ObstacleImages[rand.Intn(len(domain.ObstacleImages))]
@@ -25,7 +25,7 @@ func loadObstacles(numObstacles int, game *Game) ([]domain.Obstacle, error) {
 			listObstacles = game.obstacles
 		}
 		randomImage.Object.Position.X = positionsX[indice]
-		randomImage.Object.Position.Y = -(randomImage.Image.Bounds().Dy() + (int(i/4) * 1300))
+		randomImage.Object.Position.Y = float64(-(randomImage.Image.Bounds().Dy() + (int(i/4) * 1300)))
 		hasConflict := verifyConflictInObstacles(randomImage.Object, listObstacles)
 		if !hasConflict {
 			obstacles[i] = randomImage
@@ -53,19 +53,13 @@ func verifyConflictInObstacles(object domain.Object, listObjects []domain.Obstac
 
 func loadRoad() []domain.Object {
 	lines := make([]domain.Object, 21)
-	positionsX := []int{150, 300, 450, 600}
+	positionsX := []float64{150, 300, 450, 600}
 	index := 0
 	for line := 0; line <= 4; line++ {
 		for column := 0; column <= 3; column++ {
 			lines[index] = domain.Object{
-				Position: domain.Position{
-					X: positionsX[column],
-					Y: int(int(domain.LineHeight+50) * line),
-				},
-				Size: domain.Size{
-					Height: int(domain.LineHeight),
-					Width:  0,
-				},
+				Position: domain.Position{X: positionsX[column], Y: float64(int(domain.LineHeight+50) * line)},
+				Size:     domain.Size{Height: domain.LineHeight, Width: 0},
 			}
 			index++
 		}
@@ -73,9 +67,18 @@ func loadRoad() []domain.Object {
 	return lines
 }
 
-func LoadText(textDraw string, posX, posY, size float64, font *text.GoTextFaceSource, screen *ebiten.Image, color string) {
+func LoadText(
+	textDraw string,
+	position domain.Position,
+	size float64,
+	font *text.GoTextFaceSource,
+	screen *ebiten.Image,
+	color string,
+	align text.Align,
+	alignV ...text.Align,
+) {
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(posX, posY)
+	op.GeoM.Translate(position.X, position.Y)
 	colorRgba, _ := helpers.HexToRGBA(color)
 	op.ColorM.Scale(
 		float64(colorRgba.R)/255,
@@ -84,6 +87,10 @@ func LoadText(textDraw string, posX, posY, size float64, font *text.GoTextFaceSo
 		float64(colorRgba.A)/255,
 	)
 	op.LineSpacing = 30
+	op.PrimaryAlign = align
+	if len(alignV) > 0 {
+		op.SecondaryAlign = alignV[0]
+	}
 
 	text.Draw(screen, textDraw, &text.GoTextFace{
 		Source: font,
@@ -92,8 +99,8 @@ func LoadText(textDraw string, posX, posY, size float64, font *text.GoTextFaceSo
 }
 
 func DrawRoad(screen *ebiten.Image, game *Game) {
-	DrawRectGame(0, 0, domain.LineWidth, domain.GameHeight, screen, domain.ColorWhite)
-	DrawRectGame(domain.GameWidth-domain.LineWidth, 0, domain.LineWidth, domain.GameHeight, screen, domain.ColorWhite)
+	DrawRectGame(0, 0, domain.LineWidth, domain.GameHeight, screen, domain.White)
+	DrawRectGame(domain.GameWidth-domain.LineWidth, 0, domain.LineWidth, domain.GameHeight, screen, domain.White)
 
 	for i := 0; i < len(game.road); i++ {
 		DrawRectGame(
@@ -102,7 +109,7 @@ func DrawRoad(screen *ebiten.Image, game *Game) {
 			domain.LineWidth,
 			domain.LineHeight,
 			screen,
-			domain.ColorWhite,
+			domain.White,
 		)
 	}
 }
@@ -110,11 +117,11 @@ func DrawRoad(screen *ebiten.Image, game *Game) {
 func getColorFuel(percent int) string {
 	switch {
 	case percent > 75:
-		return domain.ColorGreen
+		return domain.Green
 	case percent > 25:
-		return domain.ColorYellow
+		return domain.Yellow
 	case percent > 0:
-		return domain.ColorRed
+		return domain.Red
 	default:
 		return ""
 	}
@@ -154,18 +161,14 @@ func drawGas(screen *ebiten.Image, game *Game) error {
 	gasImage := &ebiten.DrawImageOptions{}
 	gasImage.GeoM.Translate(float64(game.objectGas.Object.Position.X), float64(game.objectGas.Object.Position.Y))
 	screen.DrawImage(game.objectGas.Image, gasImage)
-	allanFont, err := helpers.LoadFont("AllanRegular.ttf")
-	if err != nil {
-		log.Fatal(err)
-	}
 	LoadText(
 		strconv.Itoa(game.objectGas.Percent)+"%",
-		float64(game.objectGas.Object.Position.X)+45,
-		float64(game.objectGas.Object.Position.Y)+55,
+		domain.Position{X: game.objectGas.Object.Position.X + 45, Y: game.objectGas.Object.Position.Y + 55},
 		30,
-		allanFont,
+		game.font,
 		screen,
-		domain.ColorWhite,
+		domain.White,
+		text.AlignStart,
 	)
 	return nil
 }

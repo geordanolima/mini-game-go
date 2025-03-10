@@ -23,12 +23,12 @@ func LoadImage(fileName string) (image.Image, error) {
 	return img, nil
 }
 
-func LoadImageResize(fileName string, width, height int) (image.Image, error) {
+func LoadImageResize(fileName string, width, height float64) (image.Image, error) {
 	img, err := LoadImage(fileName)
 	if err != nil {
 		return nil, err
 	}
-	rect := image.Rect(0, 0, width, height)
+	rect := image.Rect(0, 0, int(width), int(height))
 	res := image.NewRGBA(rect)
 	draw.NearestNeighbor.Scale(res, rect, img, img.Bounds(), draw.Over, nil)
 	return res, nil
