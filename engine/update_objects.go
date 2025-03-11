@@ -10,7 +10,7 @@ import (
 )
 
 func updateRoad(game *Game) {
-	if game.gameOver.Flag {
+	if game.gameOver.Flag && game.state == domain.StateNewGame {
 		return
 	}
 	if time.Since(game.roadMove) >= 50*time.Millisecond {
@@ -47,7 +47,7 @@ func moveObstaclesRoad(game *Game) {
 }
 
 func updateFuel(game *Game) {
-	if game.gameOver.Flag {
+	if game.gameOver.Flag && game.state == domain.StateNewGame {
 		return
 	}
 	colorFuel := getColorFuel(game.car.Fuel.Percent)
@@ -105,7 +105,7 @@ func verifyConflict(mainObject, conflictObject domain.Object, validateHeight boo
 }
 
 func updateScore(game *Game) {
-	if game.gameOver.Flag {
+	if game.gameOver.Flag && game.state == domain.StateNewGame {
 		return
 	}
 	if time.Since(game.score.Time) >= 1000*time.Millisecond {
@@ -115,10 +115,10 @@ func updateScore(game *Game) {
 }
 
 func updateCar(game *Game) {
-	if ebiten.IsKeyPressed(ebiten.KeyN) {
-		game.state = domain.StateMenu
-	}
-	if game.gameOver.Flag {
+	if game.gameOver.Flag && game.state == domain.StateNewGame {
+		if ebiten.IsKeyPressed(ebiten.KeyM) {
+			game.state = domain.StateMenu
+		}
 		return
 	}
 	// verify game over
@@ -154,10 +154,18 @@ func updateCar(game *Game) {
 	}
 	mouseX, mouseY := ebiten.CursorPosition()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		for _, action := range game.menu.Actions {
-			if mouseX >= int(action.Object.Position.X) && mouseX <= int(action.Object.Position.X+action.Object.Size.Width) &&
-				mouseY >= int(action.Object.Position.Y) && mouseY <= int(action.Object.Position.Y+action.Object.Size.Height) {
-				game.state = action.State
+		if game.state == domain.StateMenu {
+			for _, action := range game.menu.Actions {
+				if mouseX >= int(action.Object.Position.X) && mouseX <= int(action.Object.Position.X+action.Object.Size.Width) &&
+					mouseY >= int(action.Object.Position.Y) && mouseY <= int(action.Object.Position.Y+action.Object.Size.Height) {
+					game.state = action.State
+				}
+			}
+		}
+		if game.state == domain.StateControls {
+			if mouseX >= 20 && mouseX <= int(domain.ButtonWidth+20) &&
+				mouseY >= int(domain.GameHeight-domain.ButtonHeight-20) && mouseY <= int(domain.GameHeight-20) {
+				game.state = domain.StateMenu
 			}
 		}
 	}

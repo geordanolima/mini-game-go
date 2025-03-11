@@ -79,8 +79,13 @@
 
 - 13º commit:
   - refactored code and renamed variables and methods
-  - remove unnecessary methods
+  - removed unnecessary methods
   - changed the type of some variables
   - created menu screen
+
+- 14º commit:
+  - changed font of game to use Outfit
+  - refactored metods
+  - created controls screen
 
 [Readme](readme.md)

@@ -4,6 +4,8 @@ var GameWidth float64 = 750
 var GameHeight float64 = 1000
 var LineWidth float64 = 10
 var LineHeight float64 = 200
+var ButtonWidth = float64(200)
+var ButtonHeight = float64(50)
 var Green string = "#07B51E"
 var Yellow string = "B57E07"
 var Red string = "#B50707"
@@ -28,4 +30,12 @@ var ObstacleImages []Obstacle = []Obstacle{
 	{FilePath: "hole.png", Object: Object{Size: Size{Width: 100, Height: 100}, Position: Position{X: 25}, Margin: -30}},
 	{FilePath: "truck.png", Object: Object{Size: Size{Width: 160, Height: 330}, Position: Position{X: 5}, Margin: -10}},
 	{FilePath: "bus.png", Object: Object{Size: Size{Width: 150, Height: 430}, Position: Position{X: 0}, Margin: -10}},
+}
+
+var Controls = []string{
+	"↑/w   move up",
+	"↓/s   move down",
+	"←/a   move left",
+	"→/d   move right",
+	"m     menu",
 }

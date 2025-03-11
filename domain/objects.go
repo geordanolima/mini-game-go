@@ -68,9 +68,11 @@ type GameOver struct {
 }
 
 type TextOptions struct {
-	Text     string
-	TextSize float64
-	Position Position
+	Text        string
+	SubText     string
+	TextSize    float64
+	SubTextSize float64
+	Position    Position
 }
 
 type Action struct {

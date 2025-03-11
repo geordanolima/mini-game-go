@@ -31,39 +31,45 @@ func NewCar(carImage image.Image, carSize Size) Car {
 func NewGameOver() GameOver {
 	return GameOver{
 		Flag:      false,
-		BoxObject: Object{Position: Position{X: 180, Y: -100}, Size: Size{Width: 450, Height: 120}},
+		BoxObject: Object{Position: Position{X: 180, Y: -200}, Size: Size{Width: 450, Height: 120}},
 		TextOptions: TextOptions{
-			Text:     "Game Over\n\npress ''N'' to go to the menu",
-			Position: Position{X: 300 + 105, Y: -100},
-			TextSize: 50,
+			Text:        "Game Over",
+			SubText:     "press ''M'' to go to the menu",
+			Position:    Position{X: 300 + 105, Y: -200},
+			TextSize:    50,
+			SubTextSize: 30,
 		},
 	}
 }
 
 func NewMenu() Menu {
-	buttonWidth := float64(200)
-	buttonHeight := float64(50)
-	options := []string{"New game", "Records", "Controls"}
-	states := []GameState{StateNewGame, StateRecords, StateControls}
+	options := map[string]GameState{
+		"New game": StateNewGame,
+		"Records":  StateRecords,
+		"Controls": StateControls,
+	}
 	actions := make([]Action, len(options))
-	for i := 0; i < len(options); i++ {
-		posX := (GameWidth - buttonWidth) / 2
-		posY := (GameHeight+buttonHeight)/4 + float64(i)*(buttonHeight+20)
+	i := 0
+	for option, state := range options {
+		posX := (GameWidth - ButtonWidth) / 2
+		posY := (GameHeight+ButtonHeight)/4 + float64(i)*(ButtonHeight+20)
 		actions[i] = Action{
-			State: states[i],
+			State:   state,
+			Visible: true,
 			TextOptions: TextOptions{
-				Text:     options[i],
+				Text:     option,
 				TextSize: 30,
 				Position: Position{
-					X: posX + (buttonWidth / 2),
-					Y: posY + (buttonHeight / 2),
+					X: posX + (ButtonWidth / 2),
+					Y: posY + (ButtonHeight / 2),
 				},
 			},
 			Object: Object{
-				Size:     Size{Width: buttonWidth, Height: buttonHeight},
+				Size:     Size{Width: ButtonWidth, Height: ButtonHeight},
 				Position: Position{X: posX, Y: posY},
 			},
 		}
+		i++
 	}
 	return Menu{Actions: actions}
 }
