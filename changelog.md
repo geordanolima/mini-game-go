@@ -95,4 +95,8 @@
   - refactored metods
   - added .gitignore file
 
+- 16º commit:
+  - refactored code
+  - started difficulty feature
+
 [Readme](readme.md)

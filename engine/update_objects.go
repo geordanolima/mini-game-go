@@ -3,74 +3,78 @@ package engine
 import (
 	"math/rand"
 	"mini-game-go/domain"
+	"mini-game-go/domain/entitie"
 	"mini-game-go/helpers"
+	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 func updateRoad(game *Game) {
-	if time.Since(game.roadMove) >= 50*time.Millisecond {
-		game.roadMove = time.Now()
+	if time.Since(game.RoadMove) >= 50*time.Millisecond {
+		game.RoadMove = time.Now()
 		moveLinesRoad(game)
 		moveObstaclesRoad(game)
 	}
 }
 
 func moveLinesRoad(game *Game) {
-	for i := 0; i < len(game.road); i++ {
-		game.road[i].Position.Y += game.car.Speed * 2
-		if game.road[i].Position.Y > domain.GameHeight {
-			game.road[i].Position.Y = -game.road[i].Size.Height - 50
+	for i := 0; i < len(game.Road); i++ {
+		game.Road[i].Position.Y += game.Car.Speed * 2
+		if game.Road[i].Position.Y > domain.GameHeight {
+			game.Road[i].Position.Y = -game.Road[i].Size.Height - 50
 		}
 	}
 }
 
 func moveObstaclesRoad(game *Game) {
-	for i := 0; i < len(game.obstacles); i++ {
-		game.obstacles[i].Object.Position.Y += game.car.Speed * 2
-		if game.obstacles[i].Object.Position.Y > domain.GameHeight {
-			game.obstacles = append(game.obstacles[:i], game.obstacles[i+1:]...)
-			obstaclesGame, _ := loadObstacles(1, game)
-			game.obstacles = append(game.obstacles, obstaclesGame[0])
+	for i := 0; i < len(game.Obstacles); i++ {
+		game.Obstacles[i].Object.Position.Y += game.Car.Speed * 2
+		if game.Obstacles[i].Object.Position.Y > domain.GameHeight {
+			game.Obstacles = append(game.Obstacles[:i], game.Obstacles[i+1:]...)
+			obstaclesGame := loadObstacles(1, game)
+			game.Obstacles = append(game.Obstacles, obstaclesGame[0])
 		}
 	}
-	game.objectGas.Object.Position.Y += game.car.Speed * 2
-	if game.objectGas.Object.Position.Y > domain.GameHeight {
-		game.objectGas.Object.Position.Y = -1000
-		game.objectGas.Percent = helpers.GetProportionalPercent()
-		game.objectGas.Object.Position.X = domain.PositionsX[rand.Intn(len(domain.PositionsX))]
+	game.ObjectGas.Object.Position.Y += game.Car.Speed * 2
+	if game.ObjectGas.Object.Position.Y > domain.GameHeight {
+		game.ObjectGas.Object.Position.Y = -1000
+		value := helpers.GetProportionalPercent()
+		game.ObjectGas.TextValue = strconv.Itoa(value) + "%"
+		game.ObjectGas.Value = value
+		game.ObjectGas.Object.Position.X = domain.PositionsX[rand.Intn(len(domain.PositionsX))]
 	}
 }
 
 func updateFuel(game *Game) {
-	colorFuel := getColorFuel(game.car.Fuel.Percent)
-	game.car.Fuel.Color = colorFuel
+	colorFuel := getColorFuel(game.Car.Fuel.Percent)
+	game.Car.Fuel.Color = colorFuel
 
-	if time.Since(game.car.Fuel.Time) >= 1000*time.Millisecond {
-		game.car.Fuel.Time = time.Now()
-		taxConsume := int(game.car.Speed / 5)
+	if time.Since(game.Car.Fuel.Time) >= 1000*time.Millisecond {
+		game.Car.Fuel.Time = time.Now()
+		taxConsume := int(game.Car.Speed / 5)
 		if taxConsume <= 0 {
 			taxConsume = 1
 		}
-		game.car.Fuel.Percent -= taxConsume
-		if game.car.Fuel.Percent%5 == 0 {
+		game.Car.Fuel.Percent -= taxConsume
+		if game.Car.Fuel.Percent%5 == 0 {
 			for i := 9; i > 0; i-- {
-				if game.car.Fuel.Percent > i*10 {
-					game.car.Speed += float64(10 - i + game.dificulty)
-					game.car.SpeedView += 5 * (10 - i)
+				if game.Car.Fuel.Percent > i*10 {
+					game.Car.Speed += float64(10 - i + int(game.Dificulty))
+					game.Car.SpeedView += 5 * (10 - i)
 					break
 				}
 			}
 		}
-		if game.car.Fuel.Percent <= 0 {
-			game.car.Fuel.Percent = 0
+		if game.Car.Fuel.Percent <= 0 {
+			game.Car.Fuel.Percent = 0
 			drawGameOver(game)
 		}
 	}
 }
 
-func verifyConflict(mainObject, conflictObject domain.Object, validateHeight bool) bool {
+func verifyConflict(mainObject, conflictObject entitie.Object, validateHeight bool) bool {
 	mainWidth := mainObject.Size.Width
 	mainHeight := mainObject.Size.Height
 	mainX := mainObject.Position.X
@@ -99,68 +103,68 @@ func verifyConflict(mainObject, conflictObject domain.Object, validateHeight boo
 }
 
 func updateScore(game *Game) {
-	if time.Since(game.score.Time) >= 1000*time.Millisecond {
-		game.score.Score += int(game.car.Speed / 5)
-		game.score.Time = time.Now()
+	if time.Since(game.Score.Time) >= 1000*time.Millisecond {
+		game.Score.Score += int(game.Car.Speed / 5)
+		game.Score.Time = time.Now()
 	}
 }
 
 func updateCar(game *Game) {
 	// verify game over
-	for _, obstacle := range game.obstacles {
-		if verifyConflict(game.car.Object, obstacle.Object, false) {
+	for _, obstacle := range game.Obstacles {
+		if verifyConflict(game.Car.Object, obstacle.Object, false) {
 			drawGameOver(game)
 		}
 	}
 	// verify if get fuel
-	if verifyConflict(game.car.Object, game.objectGas.Object, true) {
-		game.objectGas.Image = nil
-		game.car.Fuel.Percent += game.objectGas.Percent
-		if game.car.Fuel.Percent > 100 {
-			game.car.Fuel.Percent = 100
+	if verifyConflict(game.Car.Object, game.ObjectGas.Object, true) {
+		game.ObjectGas.Image = nil
+		game.Car.Fuel.Percent += game.ObjectGas.Value
+		if game.Car.Fuel.Percent > 100 {
+			game.Car.Fuel.Percent = 100
 		}
 	}
 	// move car
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowLeft) || ebiten.IsKeyPressed(ebiten.KeyA)) &&
-		game.car.Object.Position.X >= 20 {
-		game.car.Object.Position.X -= game.car.Speed
+		game.Car.Object.Position.X >= 20 {
+		game.Car.Object.Position.X -= game.Car.Speed
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowRight) || ebiten.IsKeyPressed(ebiten.KeyD)) &&
-		game.car.Object.Position.X <= domain.GameWidth-game.car.Object.Size.Width-20 {
-		game.car.Object.Position.X += game.car.Speed
+		game.Car.Object.Position.X <= domain.GameWidth-game.Car.Object.Size.Width-20 {
+		game.Car.Object.Position.X += game.Car.Speed
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowUp) || ebiten.IsKeyPressed(ebiten.KeyW)) &&
-		game.car.Object.Position.Y >= 60 {
-		game.car.Object.Position.Y -= game.car.Speed
+		game.Car.Object.Position.Y >= 60 {
+		game.Car.Object.Position.Y -= game.Car.Speed
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowDown) || ebiten.IsKeyPressed(ebiten.KeyS)) &&
-		game.car.Object.Position.Y <= domain.GameHeight-300 {
-		game.car.Object.Position.Y += game.car.Speed
+		game.Car.Object.Position.Y <= domain.GameHeight-300 {
+		game.Car.Object.Position.Y += game.Car.Speed
 	}
 }
 
 func verifyClick(game *Game) {
 	mouseX, mouseY := ebiten.CursorPosition()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-		if game.state == domain.StateMenu {
-			for _, action := range game.menu.Actions {
+		if game.State == entitie.StateMenu {
+			for _, action := range game.Menu.Actions {
 				if mouseX >= int(action.Object.Position.X) && mouseX <= int(action.Object.Position.X+action.Object.Size.Width) &&
 					mouseY >= int(action.Object.Position.Y) && mouseY <= int(action.Object.Position.Y+action.Object.Size.Height) {
-					game.state = action.State
+					game.State = action.State
 				}
 			}
 		}
-		if game.state == domain.StateControls {
+		if game.State == entitie.StateControls {
 			if mouseX >= 20 && mouseX <= int(domain.ButtonWidth+20) &&
 				mouseY >= int(domain.GameHeight-domain.ButtonHeight-20) && mouseY <= int(domain.GameHeight-20) {
-				game.state = domain.StateMenu
+				game.State = entitie.StateMenu
 			}
 		}
 	}
 }
 
 func drawGameOver(game *Game) {
-	game.gameOver.TextOptions.Position.Y = 300
-	game.gameOver.BoxObject.Position.Y = 300
-	game.gameOver.Flag = true
+	game.GameOver.TextOptions.Position.Y = 300
+	game.GameOver.BoxObject.Position.Y = 300
+	game.GameOver.Flag = true
 }

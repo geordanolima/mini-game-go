@@ -2,16 +2,17 @@ package domain
 
 import (
 	"image"
+	"mini-game-go/domain/entitie"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewCar(carImage image.Image, carSize Size) Car {
-	return Car{
+func NewCar(carImage image.Image, carSize entitie.Size) entitie.Car {
+	return entitie.Car{
 		Image: ebiten.NewImageFromImage(carImage),
-		Object: Object{
-			Position: Position{
+		Object: entitie.Object{
+			Position: entitie.Position{
 				X: 320,
 				Y: GameHeight - 300,
 			},
@@ -20,7 +21,7 @@ func NewCar(carImage image.Image, carSize Size) Car {
 		},
 		Speed:     5,
 		SpeedView: 10,
-		Fuel: Fuel{
+		Fuel: entitie.Fuel{
 			Percent: 100,
 			Time:    time.Now(),
 			Color:   Green,
@@ -28,48 +29,48 @@ func NewCar(carImage image.Image, carSize Size) Car {
 	}
 }
 
-func NewGameOver() GameOver {
-	return GameOver{
+func NewGameOver() entitie.GameOver {
+	return entitie.GameOver{
 		Flag:      false,
-		BoxObject: Object{Position: Position{X: 180, Y: -200}, Size: Size{Width: 450, Height: 120}},
-		TextOptions: TextOptions{
+		BoxObject: entitie.Object{Position: entitie.Position{X: 180, Y: -200}, Size: entitie.Size{Width: 450, Height: 120}},
+		TextOptions: entitie.TextOptions{
 			Text:        "Game Over",
 			SubText:     "press ''M'' to go to the menu",
-			Position:    Position{X: 300 + 105, Y: -200},
+			Position:    entitie.Position{X: 300 + 105, Y: -200},
 			TextSize:    50,
 			SubTextSize: 30,
 		},
 	}
 }
 
-func NewMenu() Menu {
-	options := map[string]GameState{
-		"New game": StateNewGame,
-		"Records":  StateRecords,
-		"Controls": StateControls,
+func NewMenu() entitie.Menu {
+	options := map[string]entitie.GameState{
+		"New game": entitie.StateNewGame,
+		"Records":  entitie.StateRecords,
+		"Controls": entitie.StateControls,
 	}
-	actions := make([]Action, len(options))
+	actions := make([]entitie.Action, len(options))
 	i := 0
 	for option, state := range options {
 		posX := (GameWidth - ButtonWidth) / 2
 		posY := (GameHeight+ButtonHeight)/4 + float64(i)*(ButtonHeight+20)
-		actions[i] = Action{
+		actions[i] = entitie.Action{
 			State:   state,
 			Visible: true,
-			TextOptions: TextOptions{
+			TextOptions: entitie.TextOptions{
 				Text:     option,
 				TextSize: 30,
-				Position: Position{
+				Position: entitie.Position{
 					X: posX + (ButtonWidth / 2),
 					Y: posY + (ButtonHeight / 2),
 				},
 			},
-			Object: Object{
-				Size:     Size{Width: ButtonWidth, Height: ButtonHeight},
-				Position: Position{X: posX, Y: posY},
+			Object: entitie.Object{
+				Size:     entitie.Size{Width: ButtonWidth, Height: ButtonHeight},
+				Position: entitie.Position{X: posX, Y: posY},
 			},
 		}
 		i++
 	}
-	return Menu{Actions: actions}
+	return entitie.Menu{Actions: actions}
 }
