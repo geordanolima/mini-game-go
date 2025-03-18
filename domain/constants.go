@@ -1,17 +1,18 @@
 package domain
 
 var GameWidth float64 = 750
-var GameHeight float64 = 1000
+var GameHeight float64 = 900
 var LineWidth float64 = 10
 var LineHeight float64 = 200
 var ButtonWidth = float64(200)
 var ButtonHeight = float64(50)
+var Black string = "#000000"
+var DarkGray string = "#0F0F0F"
+var Gray string = "#3C3C3C"
 var Green string = "#07B51E"
 var Yellow string = "B57E07"
 var Red string = "#B50707"
 var White string = "#FFFFFF"
-var DarkGray string = "#0F0F0F"
-var Gray string = "#3C3C3C"
 var PositionsX = []float64{15, 155, 305, 455, 605}
 var PercentsGas = []int{10, 20, 30, 40, 50, 60, 70, 80, 90, 100}
 
@@ -20,6 +21,8 @@ type GameState int
 const (
 	StateMenu GameState = iota
 	StateNewGame
+	StateGameRunning
+	StateEnterName
 	StateRecords
 	StateControls
 )

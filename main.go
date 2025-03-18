@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// create game
-	game := engine.NewGame()
+	game := engine.CreateGame()
 	ebiten.SetWindowSize(game.Layout(0, 0))
 	ebiten.SetWindowTitle("Car race")
 	// run game

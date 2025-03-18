@@ -17,7 +17,7 @@ func loadObstacles(numObstacles int, game *Game) ([]domain.Obstacle, error) {
 	obstacles := make([]domain.Obstacle, numObstacles)
 	positionsX := make([]float64, len(domain.PositionsX))
 	copy(positionsX, domain.PositionsX)
-	for i := 0; i < numObstacles; i++ {
+	for i := range numObstacles {
 		randomImage := domain.ObstacleImages[rand.Intn(len(domain.ObstacleImages))]
 		indice := rand.Intn(len(positionsX))
 		listObstacles := obstacles
@@ -146,7 +146,7 @@ func drawGas(screen *ebiten.Image, game *Game) error {
 				Margin:   -30,
 			},
 		}
-		for true {
+		for {
 			if !verifyConflictInObstacles(game.objectGas.Object, game.obstacles) {
 				break
 			}

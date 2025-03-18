@@ -24,6 +24,11 @@ type Object struct {
 	Margin   float64
 }
 
+type User struct {
+	Name        string
+	InputActive bool
+}
+
 type Car struct {
 	Object    Object
 	Image     *ebiten.Image

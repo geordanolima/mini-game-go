@@ -88,4 +88,11 @@
   - refactored metods
   - created controls screen
 
+- 15º commit:
+  - created records screen
+  - created get name user screen
+  - save users, records and date on sqlite db
+  - refactored metods
+  - added .gitignore file
+
 [Readme](readme.md)

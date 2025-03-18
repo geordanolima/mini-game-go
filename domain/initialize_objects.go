@@ -13,7 +13,7 @@ func NewCar(carImage image.Image, carSize Size) Car {
 		Object: Object{
 			Position: Position{
 				X: 320,
-				Y: 700,
+				Y: GameHeight - 300,
 			},
 			Size:   carSize,
 			Angule: 0,

@@ -10,9 +10,6 @@ import (
 )
 
 func updateRoad(game *Game) {
-	if game.gameOver.Flag && game.state == domain.StateNewGame {
-		return
-	}
 	if time.Since(game.roadMove) >= 50*time.Millisecond {
 		game.roadMove = time.Now()
 		moveLinesRoad(game)
@@ -47,9 +44,6 @@ func moveObstaclesRoad(game *Game) {
 }
 
 func updateFuel(game *Game) {
-	if game.gameOver.Flag && game.state == domain.StateNewGame {
-		return
-	}
 	colorFuel := getColorFuel(game.car.Fuel.Percent)
 	game.car.Fuel.Color = colorFuel
 
@@ -105,9 +99,6 @@ func verifyConflict(mainObject, conflictObject domain.Object, validateHeight boo
 }
 
 func updateScore(game *Game) {
-	if game.gameOver.Flag && game.state == domain.StateNewGame {
-		return
-	}
 	if time.Since(game.score.Time) >= 1000*time.Millisecond {
 		game.score.Score += int(game.car.Speed / 5)
 		game.score.Time = time.Now()
@@ -115,15 +106,9 @@ func updateScore(game *Game) {
 }
 
 func updateCar(game *Game) {
-	if game.gameOver.Flag && game.state == domain.StateNewGame {
-		if ebiten.IsKeyPressed(ebiten.KeyM) {
-			game.state = domain.StateMenu
-		}
-		return
-	}
 	// verify game over
-	for i := 0; i < len(game.obstacles); i++ {
-		if verifyConflict(game.car.Object, game.obstacles[i].Object, false) {
+	for _, obstacle := range game.obstacles {
+		if verifyConflict(game.car.Object, obstacle.Object, false) {
 			drawGameOver(game)
 		}
 	}
@@ -149,9 +134,12 @@ func updateCar(game *Game) {
 		game.car.Object.Position.Y -= game.car.Speed
 	}
 	if (ebiten.IsKeyPressed(ebiten.KeyArrowDown) || ebiten.IsKeyPressed(ebiten.KeyS)) &&
-		game.car.Object.Position.Y <= domain.GameWidth-20 {
+		game.car.Object.Position.Y <= domain.GameHeight-300 {
 		game.car.Object.Position.Y += game.car.Speed
 	}
+}
+
+func verifyClick(game *Game) {
 	mouseX, mouseY := ebiten.CursorPosition()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		if game.state == domain.StateMenu {
