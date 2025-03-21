@@ -8,7 +8,18 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func NewCar(carImage image.Image, carSize entitie.Size) entitie.Car {
+func getInitialSpeedByDifficulty(difficulty Difficulty) float64 {
+	switch difficulty {
+	case Hard:
+		return 10
+	case Medium:
+		return 5
+	default:
+		return 3
+	}
+}
+
+func NewCar(carImage image.Image, carSize entitie.Size, difficulty Difficulty) entitie.Car {
 	return entitie.Car{
 		Image: ebiten.NewImageFromImage(carImage),
 		Object: entitie.Object{
@@ -19,8 +30,8 @@ func NewCar(carImage image.Image, carSize entitie.Size) entitie.Car {
 			Size:   carSize,
 			Angule: 0,
 		},
-		Speed:     5,
-		SpeedView: 10,
+		Speed:     getInitialSpeedByDifficulty(difficulty),
+		SpeedView: int(getInitialSpeedByDifficulty(difficulty)),
 		Fuel: entitie.Fuel{
 			Percent: 100,
 			Time:    time.Now(),
@@ -43,22 +54,18 @@ func NewGameOver() entitie.GameOver {
 	}
 }
 
-func NewMenu() entitie.Menu {
-	options := map[string]entitie.GameState{
-		"New game": entitie.StateNewGame,
-		"Records":  entitie.StateRecords,
-		"Controls": entitie.StateControls,
-	}
+func createSelectors(options map[string][]any) entitie.Selector {
 	actions := make([]entitie.Action, len(options))
 	i := 0
-	for option, state := range options {
+	for key, value := range options {
 		posX := (GameWidth - ButtonWidth) / 2
 		posY := (GameHeight+ButtonHeight)/4 + float64(i)*(ButtonHeight+20)
 		actions[i] = entitie.Action{
-			State:   state,
+			State:   value[0].(int),
 			Visible: true,
 			TextOptions: entitie.TextOptions{
-				Text:     option,
+				Text:     key,
+				SubText:  value[1].(string),
 				TextSize: 30,
 				Position: entitie.Position{
 					X: posX + (ButtonWidth / 2),
@@ -72,5 +79,23 @@ func NewMenu() entitie.Menu {
 		}
 		i++
 	}
-	return entitie.Menu{Actions: actions}
+	return entitie.Selector{Actions: actions}
+}
+
+func NewMenu() entitie.Selector {
+	options := map[string][]any{
+		"New game": {int(entitie.StateDifficulty), ""},
+		"Records":  {int(entitie.StateRecords), ""},
+		"Controls": {int(entitie.StateControls), ""},
+	}
+	return createSelectors(options)
+}
+
+func NewDifficultys() entitie.Selector {
+	options := map[string][]any{
+		"Easy":   {int(Easy), "In this difficulty, initial speed 3, only 2 obstacles at a time, \nand more fuel on the way. \nRefuel your car with 70% to 100% fuel."},
+		"Medium": {int(Medium), "In this difficulty, initial speed 5, 3 obstacles at a time, \nand more fuel on the way. \nRefuel your car with 30% to 60% fuel."},
+		"Hard":   {int(Hard), "In this difficulty, initial speed 10, 4 obstacles at a time, \nand more fuel on the way. \nRefuel your car with 10% to 40% fuel."},
+	}
+	return createSelectors(options)
 }

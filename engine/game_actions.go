@@ -11,7 +11,11 @@ import (
 func (game *Game) Update() error {
 	switch game.State {
 	case entitie.StateMenu:
-		verifyClick(game)
+		verifyClickMenu(game)
+	case entitie.StateDifficulty:
+		verifyClickDifficulty(game)
+		verifyClickBack(game)
+		verifyClickConfirm(game)
 	case entitie.StateGameRunning:
 		if !game.GameOver.Flag {
 			updateFuel(game)
@@ -33,14 +37,8 @@ func (game *Game) Update() error {
 			saveRecord(game)
 			game.State = entitie.StateMenu
 		}
-	case entitie.StateControls:
-		if ebiten.IsKeyPressed(ebiten.KeyM) {
-			game.State = entitie.StateMenu
-		}
-	case entitie.StateRecords:
-		if ebiten.IsKeyPressed(ebiten.KeyM) {
-			game.State = entitie.StateMenu
-		}
+	case entitie.StateControls, entitie.StateRecords:
+		verifyClickBack(game)
 	}
 	return nil
 }
@@ -50,6 +48,8 @@ func (game *Game) Draw(screen *ebiten.Image) {
 	switch game.State {
 	case entitie.StateMenu:
 		game.drawMenu(screen)
+	case entitie.StateDifficulty:
+		game.drawDifficulty(screen)
 	case entitie.StateNewGame:
 		game.NewGame()
 	case entitie.StateEnterName:

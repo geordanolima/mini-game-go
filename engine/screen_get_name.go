@@ -19,7 +19,7 @@ func (game *Game) drawEnterNameScreen(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, float32(posX), 200, float32(domain.GameWidth-(2*posX)), 50, color.White, false)
 
 	LoadText(
-		"Write yor name and press enter to save:",
+		"Type your name and press Enter to save your record:",
 		entitie.Position{X: posX + 10, Y: 202},
 		20,
 		game.Font,

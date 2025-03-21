@@ -20,7 +20,7 @@ func updateRoad(game *Game) {
 }
 
 func moveLinesRoad(game *Game) {
-	for i := 0; i < len(game.Road); i++ {
+	for i := range game.Road {
 		game.Road[i].Position.Y += game.Car.Speed * 2
 		if game.Road[i].Position.Y > domain.GameHeight {
 			game.Road[i].Position.Y = -game.Road[i].Size.Height - 50
@@ -29,7 +29,7 @@ func moveLinesRoad(game *Game) {
 }
 
 func moveObstaclesRoad(game *Game) {
-	for i := 0; i < len(game.Obstacles); i++ {
+	for i := range game.Obstacles {
 		game.Obstacles[i].Object.Position.Y += game.Car.Speed * 2
 		if game.Obstacles[i].Object.Position.Y > domain.GameHeight {
 			game.Obstacles = append(game.Obstacles[:i], game.Obstacles[i+1:]...)
@@ -40,7 +40,7 @@ func moveObstaclesRoad(game *Game) {
 	game.ObjectGas.Object.Position.Y += game.Car.Speed * 2
 	if game.ObjectGas.Object.Position.Y > domain.GameHeight {
 		game.ObjectGas.Object.Position.Y = -1000
-		value := helpers.GetProportionalPercent()
+		value := helpers.GetProportionalPercent(domain.PercentGasByDifficulty[game.Dificulty])
 		game.ObjectGas.TextValue = strconv.Itoa(value) + "%"
 		game.ObjectGas.Value = value
 		game.ObjectGas.Object.Position.X = domain.PositionsX[rand.Intn(len(domain.PositionsX))]
@@ -48,8 +48,7 @@ func moveObstaclesRoad(game *Game) {
 }
 
 func updateFuel(game *Game) {
-	colorFuel := getColorFuel(game.Car.Fuel.Percent)
-	game.Car.Fuel.Color = colorFuel
+	game.Car.Fuel.Color = getColorFuel(game.Car.Fuel.Percent)
 
 	if time.Since(game.Car.Fuel.Time) >= 1000*time.Millisecond {
 		game.Car.Fuel.Time = time.Now()
@@ -70,6 +69,8 @@ func updateFuel(game *Game) {
 		if game.Car.Fuel.Percent <= 0 {
 			game.Car.Fuel.Percent = 0
 			drawGameOver(game)
+		} else {
+			game.Level++
 		}
 	}
 }
@@ -143,22 +144,65 @@ func updateCar(game *Game) {
 	}
 }
 
-func verifyClick(game *Game) {
+func verifyClickInRangeActions(mouseX, mouseY int, actions []entitie.Action) *entitie.Action {
+	for _, action := range actions {
+		if mouseX >= int(action.Object.Position.X) && mouseX <= int(action.Object.Position.X+action.Object.Size.Width) &&
+			mouseY >= int(action.Object.Position.Y) && mouseY <= int(action.Object.Position.Y+action.Object.Size.Height) {
+			return &action
+		}
+	}
+	return &entitie.Action{}
+}
+
+func disableActions(actions *[]entitie.Action, actionActive entitie.Action) {
+	for i, action := range *actions {
+		(*actions)[i].Active = action.TextOptions.Text == actionActive.TextOptions.Text
+	}
+}
+
+func verifyClickMenu(game *Game) {
 	mouseX, mouseY := ebiten.CursorPosition()
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		if game.State == entitie.StateMenu {
-			for _, action := range game.Menu.Actions {
-				if mouseX >= int(action.Object.Position.X) && mouseX <= int(action.Object.Position.X+action.Object.Size.Width) &&
-					mouseY >= int(action.Object.Position.Y) && mouseY <= int(action.Object.Position.Y+action.Object.Size.Height) {
-					game.State = action.State
-				}
+			action := verifyClickInRangeActions(mouseX, mouseY, game.Menu.Actions)
+			if action.Visible {
+				game.State = entitie.GameState(action.State)
 			}
 		}
-		if game.State == entitie.StateControls {
+	}
+}
+
+func verifyClickDifficulty(game *Game) {
+	mouseX, mouseY := ebiten.CursorPosition()
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		if game.State == entitie.StateDifficulty {
+			action := verifyClickInRangeActions(mouseX, mouseY, game.DifficultySelector.Actions)
+			if action.Visible {
+				disableActions(&game.DifficultySelector.Actions, *action)
+				game.Dificulty = domain.Difficulty(action.State)
+			}
+		}
+	}
+}
+
+func verifyClickBack(game *Game) {
+	mouseX, mouseY := ebiten.CursorPosition()
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		if game.State == entitie.StateControls || game.State == entitie.StateRecords || game.State == entitie.StateDifficulty {
 			if mouseX >= 20 && mouseX <= int(domain.ButtonWidth+20) &&
 				mouseY >= int(domain.GameHeight-domain.ButtonHeight-20) && mouseY <= int(domain.GameHeight-20) {
 				game.State = entitie.StateMenu
 			}
+		}
+	}
+}
+
+func verifyClickConfirm(game *Game) {
+	mouseX, mouseY := ebiten.CursorPosition()
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && game.State == entitie.StateDifficulty {
+		if mouseX >= int(domain.GameWidth-domain.ButtonWidth-20) && mouseX <= int(domain.GameWidth-20) &&
+			mouseY >= int(domain.GameHeight-domain.ButtonHeight-20) && mouseY <= int(domain.GameHeight-20) {
+			game.State = entitie.StateNewGame
 		}
 	}
 }

@@ -12,28 +12,30 @@ import (
 )
 
 type Game struct {
-	Car       entitie.Car
-	Dificulty domain.Difficulty
-	Font      *text.GoTextFaceSource
-	GameOver  entitie.GameOver
-	Level     int
-	Menu      entitie.Menu
-	ObjectGas entitie.Obstacle
-	Obstacles []entitie.Obstacle
-	Road      []entitie.Object
-	RoadMove  time.Time
-	Score     entitie.Score
-	State     entitie.GameState
-	User      entitie.User
+	Car                     entitie.Car
+	Dificulty               domain.Difficulty
+	DifficultySelector      entitie.Selector
+	Font                    *text.GoTextFaceSource
+	GameOver                entitie.GameOver
+	Level                   int
+	Menu                    entitie.Selector
+	ObjectGas               entitie.Obstacle
+	Obstacles               []entitie.Obstacle
+	Road                    []entitie.Object
+	RoadMove                time.Time
+	Score                   entitie.Score
+	State                   entitie.GameState
+	User                    entitie.User
+	WaitingSelectDifficulty bool
 }
 
 func (game *Game) NewGame() {
 	LoadImageObstacleImages()
-	obstaclesGame := loadObstacles(5, nil)
+	obstaclesGame := loadObstaclesByDifficulty(game.Dificulty, nil)
 	carSize := entitie.Size{Height: 290, Width: 120}
 	carImage, _ := helpers.LoadImageResize("car.png", carSize.Width, carSize.Height)
 
-	game.Car = domain.NewCar(carImage, carSize)
+	game.Car = domain.NewCar(carImage, carSize, game.Dificulty)
 	game.GameOver = domain.NewGameOver()
 	game.Obstacles = obstaclesGame
 	game.Level = 01
@@ -48,11 +50,12 @@ func CreateGame() Game {
 		log.Fatal(err)
 	}
 	return Game{
-		Font:     font,
-		GameOver: domain.NewGameOver(),
-		Menu:     domain.NewMenu(),
-		Road:     loadRoad(),
-		State:    entitie.StateMenu,
+		Font:               font,
+		GameOver:           domain.NewGameOver(),
+		Menu:               domain.NewMenu(),
+		DifficultySelector: domain.NewDifficultys(),
+		Road:               loadRoad(),
+		State:              entitie.StateMenu,
 	}
 }
 

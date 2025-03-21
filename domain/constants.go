@@ -1,8 +1,6 @@
 package domain
 
-import (
-	"mini-game-go/domain/entitie"
-)
+import "mini-game-go/domain/entitie"
 
 // Sizes
 var GameWidth float64 = 750
@@ -35,7 +33,7 @@ const (
 	Hard
 )
 
-var PercentGasByLevels = map[Difficulty][]int{
+var PercentGasByDifficulty = map[Difficulty][]int{
 	Easy:   PercentsGas[4:],  // 70, 80, 90, 100
 	Medium: PercentsGas[2:6], // 30, 40, 50, 60
 	Hard:   PercentsGas[:4],  // 10, 20, 30, 40

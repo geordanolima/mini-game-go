@@ -35,7 +35,7 @@ func getPosYFuelByDifficulty(game *Game) float64 {
 }
 
 func defineObjectFuel(game *Game) entitie.Obstacle {
-	value := helpers.GetProportionalPercent()
+	value := helpers.GetProportionalPercent(domain.PercentGasByDifficulty[game.Dificulty])
 	return entitie.Obstacle{
 		TextValue: strconv.Itoa(value) + "%",
 		Value:     value,

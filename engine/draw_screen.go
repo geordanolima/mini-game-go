@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"mini-game-go/domain/entitie"
 	"mini-game-go/helpers"
 
@@ -17,7 +16,7 @@ func DrawRect64(x, y, w, h float64, screen *ebiten.Image, color string) error {
 func DrawRect32(x, y, w, h float32, screen *ebiten.Image, color string) error {
 	recColor, err := helpers.HexToRGBA(color)
 	if err != nil {
-		return fmt.Errorf("Error to draw rect on screen: %w", err)
+		return err
 	}
 	vector.DrawFilledRect(screen, x, y, w, h, recColor, false)
 	return nil
@@ -38,7 +37,7 @@ func LoadText(
 	op.GeoM.Translate(position.X, position.Y)
 	colorRgba, err := helpers.HexToRGBA(color)
 	if err != nil {
-		return fmt.Errorf("Error to load text on screen: %w", err)
+		return err
 	}
 	op.ColorScale.Scale(
 		float32(colorRgba.R)/255,

@@ -99,4 +99,9 @@
   - refactored code
   - started difficulty feature
 
+- 17º commit:
+  - Created difficulty screen
+  - Created roles to dificulty
+  - Refactored Records screen and change font in this screen to font monospace
+
 [Readme](readme.md)

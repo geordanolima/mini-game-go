@@ -17,4 +17,6 @@ func (game *Game) drawMenu(screen *ebiten.Image) {
 			)
 		}
 	}
+	game.Menu.Active = true
+	game.DifficultySelector.Active = false
 }

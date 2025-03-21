@@ -16,12 +16,5 @@ func (game *Game) drawControls(screen *ebiten.Image) {
 		drawButton(action, entitie.Position{X: posX, Y: posY}, game.Font, screen, 30)
 		i++
 	}
-	drawButtonMargin(
-		"Back",
-		entitie.Position{X: 20, Y: domain.GameHeight - domain.ButtonHeight - 20},
-		entitie.Size{Width: domain.ButtonWidth, Height: domain.ButtonHeight},
-		30,
-		game.Font,
-		screen,
-	)
+	backButon(game, screen)
 }

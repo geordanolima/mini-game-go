@@ -10,6 +10,17 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+func loadObstaclesByDifficulty(difficulty domain.Difficulty, game *Game) []entitie.Obstacle {
+	switch difficulty {
+	case domain.Hard:
+		return loadObstacles(4, game)
+	case domain.Medium:
+		return loadObstacles(3, game)
+	default: // easy
+		return loadObstacles(2, game)
+	}
+}
+
 func loadObstacles(numObstacles int, game *Game) []entitie.Obstacle {
 	obstacles := make([]entitie.Obstacle, numObstacles)
 	positionsX := make([]float64, len(domain.PositionsX))

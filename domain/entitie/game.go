@@ -7,14 +7,16 @@ type GameState int
 const (
 	StateMenu GameState = iota
 	StateNewGame
+	StateDifficulty
 	StateGameRunning
 	StateEnterName
 	StateRecords
 	StateControls
 )
 
-type Menu struct {
+type Selector struct {
 	Actions []Action
+	Active  bool
 }
 
 type User struct {
@@ -37,5 +39,6 @@ type Action struct {
 	TextOptions TextOptions
 	Object      Object
 	Visible     bool
-	State       GameState
+	State       int
+	Active      bool
 }

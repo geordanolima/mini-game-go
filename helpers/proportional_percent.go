@@ -1,15 +1,13 @@
 package helpers
 
 import (
-	"mini-game-go/domain"
-
 	"golang.org/x/exp/rand"
 )
 
-func GetProportionalPercent() int {
-	pesos := make([]int, len(domain.PercentsGas))
+func GetProportionalPercent(percentsGas []int) int {
+	pesos := make([]int, len(percentsGas))
 	somaPesos := 0
-	for i, percent := range domain.PercentsGas {
+	for i, percent := range percentsGas {
 		pesos[i] = 100 - percent + 1
 		somaPesos += pesos[i]
 	}
@@ -18,8 +16,8 @@ func GetProportionalPercent() int {
 	for i, peso := range pesos {
 		somaParcial += peso
 		if numeroAleatorio < somaParcial {
-			return domain.PercentsGas[i]
+			return percentsGas[i]
 		}
 	}
-	return domain.PercentsGas[len(domain.PercentsGas)-1]
+	return percentsGas[len(percentsGas)-1]
 }
