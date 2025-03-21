@@ -20,13 +20,8 @@ func Conn() *sql.DB {
 	return db
 }
 
-func getFilesMigration(suffix string) ([]string, error) {
-	path, err := filepath.Abs(os.Args[0])
-	if err != nil {
-		return nil, err
-	}
-	folder := filepath.Join(filepath.Dir(path), "/database/migrates")
-	dir, err := os.Open(folder)
+func GetFilesMigration(suffix string, migrationDir string) ([]string, error) {
+	dir, err := os.Open(migrationDir)
 	if err != nil {
 		return nil, err
 	}
@@ -36,26 +31,21 @@ func getFilesMigration(suffix string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var sqls []string
+	sqls := []string{}
 	for _, fileInfo := range fileInfos {
 		if strings.HasSuffix(fileInfo.Name(), suffix) {
-			filePath := filepath.Join(folder, "/", fileInfo.Name())
+			filePath := filepath.Join(migrationDir, fileInfo.Name()) //Removida a barra inicial
 			data, err := os.ReadFile(filePath)
 			if err != nil {
 				return nil, err
 			}
 			sqls = append(sqls, string(data))
-
 		}
 	}
 	return sqls, nil
 }
 
-func executeMigration(db *sql.DB, suffix string) error {
-	sqls, err := getFilesMigration(suffix)
-	if err != nil {
-		return err
-	}
+func ExecuteMigration(db *sql.DB, sqls []string) error {
 	for _, sql := range sqls {
 		_, err := db.Exec(sql)
 		if err != nil {
@@ -66,14 +56,22 @@ func executeMigration(db *sql.DB, suffix string) error {
 }
 
 func CreateTables(db *sql.DB) {
-	err := executeMigration(db, ".up.sql")
+	sqls, err := GetFilesMigration(".up.sql", "./database/migrates")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = ExecuteMigration(db, sqls)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func DropTables(db *sql.DB) {
-	err := executeMigration(db, ".down.sql")
+	sqls, err := GetFilesMigration(".down.sql", "./database/migrates")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = ExecuteMigration(db, sqls)
 	if err != nil {
 		log.Fatal(err)
 	}

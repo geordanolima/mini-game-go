@@ -13,6 +13,5 @@ type Size struct {
 type Object struct {
 	Size     Size
 	Position Position
-	Angule   int
 	Margin   float64
 }
